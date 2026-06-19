@@ -54,6 +54,7 @@ API Key:
 let lastDir='', lastPrice=0, countdown=60, timerInterval;
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
+
 const DIV=10.55;
 
 function toggleKey(){
@@ -67,7 +68,6 @@ k.type='password';
 eye.innerText='👁️';
 }
 }
-const DIV=10.55;
 
 function save(){
 key=document.getElementById('key').value.trim();
