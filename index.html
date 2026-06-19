@@ -1,39 +1,48 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI Sniper v3.1</title>
-<style>
-body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0}
+<title>XAUUSD Sniper v3.2</title>
+<style>body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0}
 .box{border:2px solid #0f0;padding:15px;margin:10px 0;border-radius:8px}
 button{background:#0f0;color:#000;border:0;padding:12px 20px;font-weight:bold;border-radius:5px;width:100%;font-size:16px}
 select,input{background:#111;color:#0f0;border:1px solid #0f0;padding:10px;border-radius:5px;width:100%;font-size:16px;margin-top:5px}
-.green{color:#0f0}.red{color:#f00}.gray{color:#888}h2{text-align:center;margin:10px 0}
-</style></head><body>
-<h2>🪙 XAUUSD AI Sniper v3.1</h2>
+.green{color:#0f0}.red{color:#f00}.gray{color:#888}h2{text-align:center}</style></head><body>
+<h2>🪙 XAUUSD AI Sniper v3.2</h2>
 <div class="box">
-<b>Таймфрейм:</b><br>
-<select id="tf">
-<option value="5min">5 минут</option>
-<option value="15min">15 минут</option>
-<option value="30min">30 минут</option>
-<option value="1h">1 час</option>
-</select><br><br>
-<b>API Key:</b><br>
-<input id="key" placeholder="TwelveData API Key" type="text"><br><br>
-<button onclick="save()">🔊 Сохранить + Тест Звука</button></div>
-<div class="box" id="data">Вставь API ключ и жми кнопку...</div>
-<audio id="s" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+<b>Таймфрейм:</b><br><select id="tf"><option value="5min">5 минут</option><option value="15min">15 минут</option><option value="30min">30 минут</option><option value="1h">1 час</option></select><br><br>
+<b>API Key:</b><br><input id="key" placeholder="TwelveData API Key"><br><br>
+<button onclick="save()">🔊 Сохранить + Тест Тревоги</button></div>
+<div class="box" id="data">Вставь API ключ...</div>
 <script>
 let k=localStorage.k,lastSig='';
 if(k)key.value=k;
+
+function beep(times=3){
+for(let i=0;i<times;i++){
+setTimeout(()=>{
+// Вибрация если есть
+if(navigator.vibrate) navigator.vibrate([200,100,200]);
+// Звук через WebAudio - громче чем audio тег
+let ctx=new (window.AudioContext||window.webkitAudioContext)();
+let osc=ctx.createOscillator();
+let gain=ctx.createGain();
+osc.connect(gain);gain.connect(ctx.destination);
+osc.frequency.value=800;
+gain.gain.value=0.3;
+osc.start();
+osc.stop(ctx.currentTime+0.2);
+},i*300);
+}
+}
+
 function save(){
 k=key.value.trim();
 localStorage.k=k;
-s.volume=1.0;
-s.play();
+beep(3);
 Notification.requestPermission();
-alert('🔊 Звук проверен! Если слышно - всё ок');
+alert('🔊 Тревога протестирована! 3 пика + вибрация');
 load();
 }
+
 async function load(){
 if(!k)return;
 let t=tf.value;
@@ -41,13 +50,12 @@ data.innerHTML='Загрузка...';
 try{
 let r=await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${t}&outputsize=100&apikey=${k}`);
 let j=await r.json();
-if(j.status=='error'){data.innerHTML='Ошибка: '+j.message+'<br>Проверь API ключ';return}
-if(!j.values){data.innerHTML='Нет данных';return}
+if(j.status=='error'){data.innerHTML='Ошибка: '+j.message;return}
 let c=j.values.map(v=>+v.close).reverse();
 let price=c[c.length-1];
 let ema9=EMA(c,9),ema21=EMA(c,21),sma50=SMA(c,50),sma200=SMA(c,200),rsi=RSI(c,14);
 let b=0,se=0,w=0;
-let h=`<b>Цена: $${price.toFixed(2)}</b> | TF: ${t}<br><br><b>Голосование 7 индикаторов:</b><br>`;
+let h=`<b>Цена: $${price.toFixed(2)}</b> | TF: ${t}<br><br><b>Голосование:</b><br>`;
 if(price>ema9){b++;h+=`EMA9: <span class="green">BUY</span><br>`}else{se++;h+=`EMA9: <span class="red">SELL</span><br>`}
 if(price>ema21){b++;h+=`EMA21: <span class="green">BUY</span><br>`}else{se++;h+=`EMA21: <span class="red">SELL</span><br>`}
 if(price>sma50){b++;h+=`SMA50: <span class="green">BUY</span><br>`}else{se++;h+=`SMA50: <span class="red">SELL</span><br>`}
@@ -55,8 +63,7 @@ if(price>sma200){b++;h+=`SMA200: <span class="green">BUY</span><br>`}else{se++;h
 if(rsi<30){b++;h+=`RSI: <span class="green">BUY ${rsi.toFixed(1)}</span><br>`}
 else if(rsi>70){se++;h+=`RSI: <span class="red">SELL ${rsi.toFixed(1)}</span><br>`}
 else{w++;h+=`RSI: <span class="gray">WAIT ${rsi.toFixed(1)}</span><br>`}
-w++;h+=`ATR: <span class="gray">WAIT</span><br>`;
-w++;h+=`Stoch: <span class="gray">WAIT</span><br>`;
+w+=2;h+=`ATR: <span class="gray">WAIT</span><br>Stoch: <span class="gray">WAIT</span><br>`;
 h+=`<br><b>Вердикт: `;
 let sig='';
 let percent=Math.round(Math.max(b,se,w)/7*100);
@@ -66,13 +73,14 @@ else{sig='WAIT';h+=`<span class="gray">WAIT ${percent}%</span>`}
 h+=`</b>`;
 data.innerHTML=h;
 if(sig!=lastSig&&(b>=4||se>=4)){
-s.volume=1.0;
-s.play();
+beep(3);
 if(Notification.permission=='granted'){
 new Notification('🚨 XAUUSD '+sig,{body:t+' Сигнал '+percent+'%'});
 }
 lastSig=sig;
-}catch(e){data.innerHTML='Ошибка сети. Обнови страницу.'}
+}
+}catch(e){data.innerHTML='Ошибка сети'}
+}
 function SMA(a,p){return a.slice(-p).reduce((x,y)=>x+y)/p}
 function EMA(a,p){let k=2/(p+1),e=a[0];for(let i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e}
 function RSI(a,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=a[i]-a[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
