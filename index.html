@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v5.1 TURBO</title>
+<title>XAUUSD AI v5.2 ULTIMATE</title>
 <style>
 body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0;font-size:14px}
 .box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px;background:#000}
@@ -18,16 +18,19 @@ input,select{background:#000;color:#0f0;border:2px solid #0f0;padding:8px;width:
 .history{font-size:18px;text-align:center;margin-top:5px;letter-spacing:5px}
 .session{font-size:14px;text-align:center;color:#ff0;margin-top:5px;font-weight:bold}
 .spread{font-size:13px;text-align:center;color:#0ff;margin-top:3px}
+.news{font-size:14px;text-align:center;color:#f00;margin-top:5px;font-weight:bold;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:0.3}}
 h2{text-align:center;color:#0f0;margin:8px 0}
 .up{color:#0f0}.down{color:#f00}
 </style></head><body>
-<h2>🪙 XAUUSD AI v5.1 TURBO</h2>
+<h2>🪙 XAUUSD AI v5.2 ULTIMATE</h2>
 
 <div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
 <div class="price" id="price">---.--</div>
 <div class="dir" id="direction">Идет ВВЕРХ ▲</div>
 <div class="session" id="session">Сессия: --</div>
+<div class="news" id="news"></div>
 <div class="spread" id="spread">Bid: --- | Ask: --- | Спред: ---</div>
 <div class="info" id="dayRange">24h: -- | High: -- | Low: --</div>
 </div>
@@ -61,7 +64,7 @@ document.getElementById('key').value=key;
 function save(){
 key=document.getElementById('key').value.trim();
 localStorage.setItem('td_key',key);
-beep(2);
+beep('test');
 alert('✅ Сохранено!');
 scan();startTimer();
 }
@@ -84,6 +87,16 @@ if(h>=13&&h<22)return 'НЬЮ-ЙОРК 🔥🔥 Очень активная';
 return 'СИДНЕЙ 🌙 Спокойная';
 }
 
+function checkNews(){
+let h=new Date().getUTCHours();
+let m=new Date().getUTCMinutes();
+// NFP обычно 1-я пятница 13:30 UTC, CPI 15:30 UTC
+if(h==13&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ NFP ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return true;}
+if(h==15&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ CPI ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return true;}
+document.getElementById('news').innerHTML='';
+return false;
+}
+
 function addHistory(sig){
 signalHistory.unshift(sig);
 if(signalHistory.length>5)signalHistory.pop();
@@ -95,13 +108,13 @@ document.getElementById('history').innerHTML=`История: ${hist}`;
 async function scan(){
 document.getElementById('details').innerHTML='Сканирую...';
 document.getElementById('session').innerHTML=`Сессия: ${getSession()}`;
+checkNews();
 if(!key){alert('Вставь API ключ!');return;}
 let tf=document.getElementById('tf').value;
 let tp=parseInt(document.getElementById('tp').value);
 let sl=parseInt(document.getElementById('sl').value);
 
 try{
-// Основной запрос + спред
 let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=20&apikey=${key}`;
 let r=await fetch(url);let d=await r.json();
 if(d.status==='error'){document.getElementById('details').innerHTML='Ошибка: '+d.message;return;}
@@ -111,7 +124,6 @@ let c=raw.map(p=>p/1.57);
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14), atr=ATR(d.values,14);
 
-// 24h данные
 let url24=`https://api.twelvedata.com/quote?symbol=XAU/USD&apikey=${key}`;
 let r24=await fetch(url24);let d24=await r24.json();
 let bid=d24.bid/1.57, ask=d24.ask/1.57, spread=ask-bid;
@@ -140,12 +152,12 @@ if(score>=2){
 verdict.innerHTML='ВВЕРХ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price+tp/100).toFixed(2)} | SL: ${(price-sl/100).toFixed(2)}`;
-if(lastDir!=='up'){beep(3);lastDir='up';addHistory('up');}
+if(lastDir!=='up'){beep('up');lastDir='up';addHistory('up');}
 }else if(score<=-2){
 verdict.innerHTML='ВНИЗ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price-tp/100).toFixed(2)} | SL: ${(price+sl/100).toFixed(2)}`;
-if(lastDir!=='down'){beep(3);lastDir='down';addHistory('down');}
+if(lastDir!=='down'){beep('down');lastDir='down';addHistory('down');}
 }else{
 verdict.innerHTML='ФЛЭТ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
@@ -168,7 +180,13 @@ Score: ${score}/3`;
 function EMA(arr,p){let k=2/(p+1),ema=arr[0];for(let i=1;i<arr.length;i++)ema=arr[i]*k+ema*(1-k);return ema}
 function RSI(arr,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=arr[i]-arr[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
 function ATR(values,p){let sum=0;for(let i=1;i<=p&&i<values.length;i++){let h=parseFloat(values[i].high),l=parseFloat(values[i].low),pc=parseFloat(values[i-1].close);let tr=Math.max(h-l,Math.abs(h-pc),Math.abs(l-pc));sum+=tr}return sum/p/1.57}
-function beep(times=1){try{let a=new AudioContext();for(let i=0;i<times;i++){setTimeout(()=>{let o=a.createOscillator();o.frequency.value=900;o.connect(a.destination);o.start();o.stop(a.currentTime+0.3);},i*400)}}catch(e){}}
+function beep(type){
+try{let a=new AudioContext();
+if(type==='up'){for(let i=0;i<3;i++)setTimeout(()=>{let o=a.createOscillator();o.frequency.value=600+i*200;o.connect(a.destination);o.start();o.stop(a.currentTime+0.2);},i*250)}
+else if(type==='down'){for(let i=0;i<3;i++)setTimeout(()=>{let o=a.createOscillator();o.frequency.value=1000-i*200;o.connect(a.destination);o.start();o.stop(a.currentTime+0.2);},i*250)}
+else if(type==='news'){for(let i=0;i<5;i++)setTimeout(()=>{let o=a.createOscillator();o.frequency.value=1500;o.connect(a.destination);o.start();o.stop(a.currentTime+0.1);},i*150)}
+else{let o=a.createOscillator();o.frequency.value=900;o.connect(a.destination);o.start();o.stop(a.currentTime+0.3)}}
+catch(e){}}
 
 if(key){scan();startTimer();}
 document.getElementById('tf').onchange=()=>{scan();startTimer();};
