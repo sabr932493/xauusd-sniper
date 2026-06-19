@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v4.9 MATRIX+</title>
+<title>XAUUSD AI v5.0 MATRIX PRO</title>
 <style>
 body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0;font-size:14px}
 .box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px;background:#000}
@@ -8,21 +8,24 @@ body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0;font
 .price{font-size:42px;font-weight:bold;margin:5px 0;color:#0f0}
 .dir{font-size:18px;margin-top:5px;color:#0f0}
 button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;margin-top:8px;font-size:16px}
-button:hover{background:#0a0}
 input,select{background:#000;color:#0f0;border:2px solid #0f0;padding:8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
 .small{font-size:11px;color:#0f0;text-align:center;margin-top:5px;opacity:0.8}
 .verdict{font-size:32px;text-align:center;font-weight:bold;color:#0f0}
 .percent{font-size:20px;text-align:center;color:#0f0;margin-top:5px}
 .timer{font-size:16px;color:#0f0;font-weight:bold;text-align:center}
-.tpsl{font-size:18px;text-align:center;color:#0f0;margin-top:8px;border-top:1px solid #0f0;padding-top:8px}
+.tpsl{font-size:16px;text-align:center;color:#0f0;margin-top:8px;border-top:1px solid #0f0;padding-top:8px}
+.info{font-size:13px;color:#0f0;margin-top:5px}
+.history{font-size:18px;text-align:center;margin-top:5px;letter-spacing:5px}
+.session{font-size:14px;text-align:center;color:#ff0;margin-top:5px;font-weight:bold}
 h2{text-align:center;color:#0f0;margin:8px 0}
 </style></head><body>
-<h2>🪙 XAUUSD AI v4.9 MATRIX+</h2>
+<h2>🪙 XAUUSD AI v5.0 MATRIX PRO</h2>
 
 <div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
 <div class="price" id="price">---.--</div>
 <div class="dir" id="direction">Идет ВВЕРХ ▲</div>
+<div class="session" id="session">Сессия: --</div>
 <div class="small">Спред: ~0.30-0.50 $</div>
 </div>
 
@@ -30,33 +33,34 @@ h2{text-align:center;color:#0f0;margin:8px 0}
 <div class="verdict" id="verdict">Загрузка AI...</div>
 <div class="percent" id="percent"></div>
 <div class="tpsl" id="tpsl"></div>
+<div class="history" id="history">История: ---</div>
 </div>
 
 <div class="box">
 <b>Настройки</b><br>
 Таймфрейм: <select id="tf"><option>5min</option><option>15min</option><option>30min</option><option>1h</option></select><br>
-TP: <input id="tp" type="number" value="50" placeholder="пунктов"><br>
-SL: <input id="sl" type="number" value="30" placeholder="пунктов"><br>
-API Key: <input id="key" type="password" placeholder="Твой ключ TWELVE DATA"><br>
-<button onclick="save()">Сохранить & Тест звука</button>
-<button onclick="scan()">Сканировать сейчас</button>
+TP: <input id="tp" type="number" value="50"> пунктов<br>
+SL: <input id="sl" type="number" value="30"> пунктов<br>
+API Key: <input id="key" type="password" placeholder="TWELVE DATA"><br>
+<button onclick="save()">Сохранить & Тест</button>
+<button onclick="scan()">Сканировать</button>
 <div class="timer" id="timer">Автообновление: 60 сек</div>
 </div>
 
-<div class="box" id="details">Загрузка данных...</div>
+<div class="box" id="details">Загрузка...</div>
 
 <script>
 let lastDir='', lastPrice=0, countdown=60, timerInterval;
+let signalHistory = JSON.parse(localStorage.getItem('sigHist')||'[]');
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
 
 function save(){
 key=document.getElementById('key').value.trim();
 localStorage.setItem('td_key',key);
-beep(3);
-alert('✅ Ключ сохранен!');
-scan();
-startTimer();
+beep(2);
+alert('✅ Сохранено!');
+scan();startTimer();
 }
 
 function startTimer(){
@@ -69,21 +73,40 @@ if(countdown<=0){countdown=60;scan();}
 },1000);
 }
 
+function getSession(){
+let h=new Date().getUTCHours();
+if(h>=0&&h<9)return 'ТОКИО 🌅 Низкая';
+if(h>=7&&h<16)return 'ЛОНДОН 🔥 Активная';
+if(h>=13&&h<22)return 'НЬЮ-ЙОРК 🔥🔥 Очень активная';
+return 'СИДНЕЙ 🌙 Спокойная';
+}
+
+function addHistory(sig){
+signalHistory.unshift(sig);
+if(signalHistory.length>5)signalHistory.pop();
+localStorage.setItem('sigHist',JSON.stringify(signalHistory));
+let hist=signalHistory.map(s=>s==='up'?'▲':s==='down'?'▼':'■').join(' ');
+document.getElementById('history').innerHTML=`История: ${hist}`;
+let wins=signalHistory.filter(s=>s==='up'||s==='down').length;
+document.getElementById('history').innerHTML+=`<br><span class="small">Сигналов: ${signalHistory.length}</span>`;
+}
+
 async function scan(){
-document.getElementById('details').innerHTML='Сканирую рынок...';
+document.getElementById('details').innerHTML='Сканирую...';
+document.getElementById('session').innerHTML=`Сессия: ${getSession()}`;
 if(!key){alert('Вставь API ключ!');return;}
 let tf=document.getElementById('tf').value;
 let tp=parseInt(document.getElementById('tp').value);
 let sl=parseInt(document.getElementById('sl').value);
 
 try{
-let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=50&apikey=${key}`;
+let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=20&apikey=${key}`;
 let r=await fetch(url);let d=await r.json();
 if(d.status==='error'){document.getElementById('details').innerHTML='Ошибка: '+d.message;return;}
 let raw=d.values.map(x=>parseFloat(x.close));
 let c=raw.map(p=>p/1.57);
 let price=c[0];
-let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14);
+let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14), atr=ATR(d.values,14);
 
 document.getElementById('price').innerText=price.toFixed(2);
 document.getElementById('direction').innerHTML=price>lastPrice?'▲ Идет ВВЕРХ':price<lastPrice?'▼ Идет ВНИЗ':'■ Флэт';
@@ -103,24 +126,25 @@ if(score>=2){
 verdict.innerHTML='ВВЕРХ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price+tp/100).toFixed(2)} | SL: ${(price-sl/100).toFixed(2)}`;
-if(lastDir!=='up'){beep(3);lastDir='up';}
+if(lastDir!=='up'){beep(3);lastDir='up';addHistory('up');}
 }else if(score<=-2){
 verdict.innerHTML='ВНИЗ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price-tp/100).toFixed(2)} | SL: ${(price+sl/100).toFixed(2)}`;
-if(lastDir!=='down'){beep(3);lastDir='down';}
+if(lastDir!=='down'){beep(3);lastDir='down';addHistory('down');}
 }else{
 verdict.innerHTML='ФЛЭТ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML='';
-lastDir='wait';
+lastDir='wait';addHistory('wait');
 }
 
 document.getElementById('details').innerHTML=`<b>Данные индикаторов:</b><br>
 Цена: $${price.toFixed(2)}<br>
 EMA9: $${ema9.toFixed(2)}<br>
 EMA21: $${ema21.toFixed(2)}<br>
-RSI14: ${rsi.toFixed(1)}<br><br>
+RSI14: ${rsi.toFixed(1)}<br>
+<b>ATR14: ${atr.toFixed(2)}$</b> - ${atr>2?'Высокая волатильность':'Нормальная'}<br><br>
 Score: ${score}/3`;
 
 }catch(e){document.getElementById('details').innerHTML='Ошибка сети: '+e}
@@ -128,8 +152,10 @@ Score: ${score}/3`;
 
 function EMA(arr,p){let k=2/(p+1),ema=arr[0];for(let i=1;i<arr.length;i++)ema=arr[i]*k+ema*(1-k);return ema}
 function RSI(arr,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=arr[i]-arr[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
+function ATR(values,p){let sum=0;for(let i=1;i<=p&&i<values.length;i++){let h=parseFloat(values[i].high),l=parseFloat(values[i].low),pc=parseFloat(values[i-1].close);let tr=Math.max(h-l,Math.abs(h-pc),Math.abs(l-pc));sum+=tr}return sum/p/1.57}
 function beep(times=1){try{let a=new AudioContext();for(let i=0;i<times;i++){setTimeout(()=>{let o=a.createOscillator();o.frequency.value=900;o.connect(a.destination);o.start();o.stop(a.currentTime+0.3);},i*400)}}catch(e){}}
 
 if(key){scan();startTimer();}
 document.getElementById('tf').onchange=()=>{scan();startTimer();};
+addHistory('wait');
 </script></body></html>
