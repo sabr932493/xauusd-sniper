@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html><head><meta name="viewport" content="width=deviceAwidth,initial-scale=1">
-<title>XAUUSD AI v4.5</title>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XAUUSD AI v4.6</title>
 <style>body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0}
 .box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px}
 .price-box{border:3px solid #0f0;background:#001100;text-align:center}
@@ -9,15 +9,16 @@
 .dir{font-size:18px;margin-top:5px}
 button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;margin-top:8px}
 input,select{background:#111;color:#0f0;border:1px solid #0f0;padding:8px;width:100%;border-radius:5px;margin-top:5px}
-.small{font-size:11px;color:#888}
-.up{color:#0f0}.down{color:#f00}.wait{color:#888}</style></head><body>
-<h2 style="text-align:center">XAUUSD AI v4.5</h2>
+.small{font-size:11px;color:#888;text-align:center;margin-top:5px}
+.up{color:#0f0}.down{color:#f00}.wait{color:#888}
+.timer{font-size:16px;color:#0f0;font-weight:bold}</style></head><body>
+<h2 style="text-align:center">XAUUSD AI v4.6</h2>
 
 <div class="box price-box" id="priceBox">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
 <div class="price" id="price">---.--</div>
 <div class="dir" id="direction">Загрузка...</div>
-<div class="small" id="spread">Спред: ---</div>
+<div class="small" id="spread">Спред: ~0.30-0.50 $</div>
 </div>
 
 <div class="box" id="verdict">
@@ -30,13 +31,13 @@ input,select{background:#111;color:#0f0;border:1px solid #0f0;padding:8px;width:
 API Key: <input id="key" placeholder="Твой ключ TWELVE DATA"><br>
 <button onclick="save()">Сохранить & Тест звука</button>
 <button onclick="scan()">Сканировать сейчас</button>
-<div class="small">Автообновление каждые 30 сек</div>
+<div class="timer" id="timer">Автообновление: 30 сек</div>
 </div>
 
 <div class="box" id="details">Загрузка данных...</div>
 
 <script>
-let lastDir='', lastPrice=0;
+let lastDir='', lastPrice=0, countdown=30, timerInterval;
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
 
@@ -48,10 +49,23 @@ alert('Ключ сохранен! Тест звука прошел');
 scan();
 }
 
+function startTimer(){
+countdown=30;
+clearInterval(timerInterval);
+timerInterval=setInterval(()=>{
+countdown--;
+document.getElementById('timer').innerHTML=`Автообновление: <span style="color:#0f0">${countdown}</span> сек`;
+if(countdown<=0){
+countdown=30;
+scan();
+}
+},1000);
+}
+
 async function scan(){
+document.getElementById('details').innerHTML='Сканирую рынок... '+new Date().toLocaleTimeString();
 if(!key){alert('Вставь API ключ!');return;}
 let tf=document.getElementById('tf').value;
-document.getElementById('details').innerHTML='Сканирую рынок...';
 
 try{
 let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=50&apikey=${key}`;
@@ -61,11 +75,10 @@ let c=d.values.map(x=>parseFloat(x.close));
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14);
 
-// ЦЕНА ВВЕРХ
+// ЦЕНА
 let priceEl=document.getElementById('price');
 let dirEl=document.getElementById('direction');
 priceEl.innerText=price.toFixed(2);
-document.getElementById('spread').innerText='Спред: ~0.30-0.50 $';
 
 if(price>lastPrice){
 priceEl.className='price up';
@@ -96,7 +109,7 @@ if(lastDir!=='up'){beep();lastDir='up';}
 verdict.innerHTML=`<div style="font-size:32px;text-align:center" class="down">ВНИЗ ${pct.toFixed(0)}%</div><div style="text-align:center" class="small">Можно продавать</div>`;
 if(lastDir!=='down'){beep();lastDir='down';}
 }else{
-verdict.innerHTML=`<div style="font-size:24px;text-align:center" class="wait">ФЛЭТ ${pct.toFixed(0)}%</div><div style="text text-align:center" class="small">Ждем сигнал</div>`;
+verdict.innerHTML=`<div style="font-size:24px;text-align:center" class="wait">ФЛЭТ ${pct.toFixed(0)}%</div><div style="text-align:center" class="small">Ждем сигнал</div>`;
 lastDir='wait';
 }
 
@@ -110,6 +123,12 @@ function EMA(arr,p){let k=2/(p+1),ema=arr[0];for(let i=1;i<arr.length;i++)ema=ar
 function RSI(arr,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=arr[i]-arr[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
 function beep(){let a=new AudioContext();let o=a.createOscillator();o.frequency.value=900;o.connect(a.destination);o.start();o.stop(a.currentTime+0.3)}
 
-setInterval(scan,30000);
-if(key)scan();
+if(key){
+scan();
+startTimer();
+}
+document.getElementById('tf').onchange=()=>{
+scan();
+startTimer();
+};
 </script></body></html>
