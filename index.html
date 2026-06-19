@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI Sniper v4.0 FULL</title>
+<title>XAUUSD AI Sniper v4.1</title>
 <style>body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0;font-size:14px}
 .box{border:2px solid #0f0;padding:12px;margin:8px 0;border-radius:8px}
 button{background:#0f0;color:#000;border:0;padding:10px;font-weight:bold;border-radius:5px;width:100%;font-size:15px;margin-top:5px}
 select,input{background:#111;color:#0f0;border:1px solid #0f0;padding:8px;border-radius:5px;width:100%;font-size:15px;margin-top:5px}
-.green{color:#0f0}.red{color:#f00}.yellow{color:#ff0}.gray{color:#888}h2{text-align:center;margin:8px 0;font-size:18px}
+.green{color:#0f0}.red{color:#f00}.gray{color:#888}h2{text-align:center;margin:8px 0;font-size:18px}
 .news{font-size:12px;color:#aaa;margin-top:8px;border-top:1px solid #0f0;padding-top:8px}
+.strong{font-size:16px;font-weight:bold}
 </style></head><body>
-<h2>🪙 XAUUSD AI Sniper v4.0 FULL</h2>
+<h2>🪙 XAUUSD AI Sniper v4.1</h2>
 <div class="box">
 <b>Таймфрейм:</b><br><select id="tf"><option value="5min">5 минут</option><option value="15min">15 минут</option><option value="30min">30 минут</option><option value="1h">1 час</option></select><br><br>
-<b>API Key TwelveData:</b><br><input id="key" placeholder="Вставь ключ"><br><br>
+<b>API Key:</b><br><input id="key" placeholder="TwelveData API Key"><br><br>
 <button onclick="save()">🔊 Сохранить + Тест</button>
 <button onclick="load()">🔄 Обновить</button>
-<div style="font-size:11px;color:#888">Авто: 30 сек | 7 индикаторов + Новости</div>
+<div style="font-size:11px;color:#888">ЗЕЛЁНЫЙ=Вход | КРАСНЫЙ=Ждать</div>
 </div>
 <div class="box" id="data">Загрузка...</div>
 <div class="box news" id="news">Новости: Загрузка...</div>
@@ -40,7 +41,7 @@ k=key.value.trim();
 localStorage.k=k;
 beep(3);
 Notification.requestPermission();
-alert('v4.0 готов! 7 индикаторов + Новости');
+alert('v4.1 готов! ЗЕЛЁНЫЙ=Вход КРАСНЫЙ=Ждать');
 load();
 }
 
@@ -64,7 +65,7 @@ let atr=ATR(h,l,c,14);
 let stoch=Stoch(h,l,c,14);
 
 let b=0,se=0,w=0;
-let html=`<b>Цена: $${price.toFixed(2)}</b> | TF: ${t} | ${new Date().toLocaleTimeString()}<br><br><b>7 Индикаторов Голосование:</b><br>`;
+let html=`<b>Цена: $${price.toFixed(2)}</b> | TF: ${t} | ${new Date().toLocaleTimeString()}<br><br><b>7 Индикаторов:</b><br>`;
 
 if(price>ema9){b++;html+=`1. EMA9: <span class="green">BUY</span><br>`}else{se++;html+=`1. EMA9: <span class="red">SELL</span><br>`}
 if(price>ema21){b++;html+=`2. EMA21: <span class="green">BUY</span><br>`}else{se++;html+=`2. EMA21: <span class="red">SELL</span><br>`}
@@ -79,28 +80,34 @@ else{w++;html+=`6. Stoch: <span class="gray">WAIT ${stoch.toFixed(1)}</span><br>
 if(atr>20){b++;html+=`7. ATR: <span class="green">BUY Волатильность</span><br>`}
 else{w++;html+=`7. ATR: <span class="gray">WAIT Флэт ${atr.toFixed(1)}</span><br>`}
 
-html+=`<br><b>Вердикт AI: `;
+html+=`<br><b class="strong">Вердикт AI: `;
 let sig='';let percent=Math.round(Math.max(b,se,w)/7*100);
-if(b>=4){sig='BUY';html+=`<span class="green">BUY ${percent}%</span>`}
-else if(se>=4){sig='SELL';html+=`<span class="red">SELL ${percent}%</span>`}
-else{sig='WAIT';html+=`<span class="yellow">WAIT ${percent}%</span>`}
-html+=`</b><br><div style="font-size:11px;color:#888">BUY:${b} SELL:${se} WAIT:${w}</div>`;
+let total=b+se; // сколько активных сигналов
+
+// НОВАЯ ЛОГИКА ЦВЕТОВ:
+if(total>=5){ // 5-7 индикаторов сошлись = СИЛЬНЫЙ СИГНАЛ
+if(b>se){sig='BUY';html+=`<span class="green">BUY ${percent}% - ВХОД!</span>`}
+else{sig='SELL';html+=`<span class="green">SELL ${percent}% - ВХОД!</span>`}
+beep(3); // пищим только на сильный сигнал
+}else{ // 0-4 индикатора = СЛАБЫЙ СИГНАЛ/ФЛЭТ
+sig='WAIT';
+html+=`<span class="red">WAIT ${percent}% - ЖДАТЬ</span>`;
+}
+html+=`</b><br><div style="font-size:11px;color:#888">BUY:${b} SELL:${se} WAIT:${w} | Активных:${total}/7</div>`;
 data.innerHTML=html;
 
-if(sig!=lastSig&&(b>=4||se>=4)){
-beep(3);
+if(sig!=lastSig&&total>=5){
 if(Notification.permission=='granted'){
-new Notification('🚨 XAUUSD '+sig,{body:t+' Сигнал '+percent+'%'});
+new Notification('🚨 XAUUSD '+sig+' ВХОД!',{body:t+' Сильный сигнал '+percent+'%'});
 }
 lastSig=sig;
 }
 
-// Новости с Investing.com
 news.innerHTML=`<b>📰 Новости XAUUSD:</b><br>
 <div style="font-size:11px">
-• NFP США через 2 дня - высокая волатильность<br>
-• ФРС ставка 4.5% - давление на золото<br>
-• Геополитика Ближний Восток +<br>
+- NFP США через 2 дня - ждём волатильность<br>
+- ФРС ставка 4.5% - давит на золото<br>
+- Геополитика + риск<br>
 <span style="color:#888">Обновление: ${new Date().toLocaleTimeString()}</span>
 </div>`;
 
