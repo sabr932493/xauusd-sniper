@@ -1,49 +1,47 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v6.3 PRO</title>
-<style id="themeStyle">
-:root{--bg:#000;--txt:#0f0;--box:#000;--btn:#0f0;--btntxt:#000;--border:#0f0}
-body{background:var(--bg);color:var(--txt);font-family:monospace;padding:15px;margin:0;font-size:14px;transition:0.3s}
-.box{border:2px solid var(--border);padding:12px;margin:10px 0;border-radius:8px;background:var(--box);transition:0.3s}
-.price-box{border:3px solid var(--border);background:var(--bg);text-align:center}
-.price{font-size:42px;font-weight:bold;margin:5px 0;color:var(--txt)}
-.dir{font-size:18px;margin-top:5px;color:var(--txt)}
+<title>XAUUSD AI v6.1 BOTTOM BTN</title>
+<style>
+body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0;font-size:14px}
+.box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px;background:#000}
+.price-box{border:3px solid #0f0;background:#000;text-align:center}
+.price{font-size:42px;font-weight:bold;margin:5px 0;color:#0f0}
+.dir{font-size:18px;margin-top:5px;color:#0f0}
 .state{font-size:20px;text-align:center;font-weight:bold;margin-top:8px;padding:8px;border-radius:5px}
 .state.trend{background:#003300;color:#0f0}
 .state.flat{background:#333300;color:#ff0}
 .state.news{background:#330000;color:#f00}
-button{background:var(--btn);color:var(--btntxt);border:0;padding:12px;width:100%;font-weight:bold;border-radius:8px;margin-top:8px;font-size:16px;cursor:pointer}
+button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:bold;border-radius:8px;margin-top:8px;font-size:16px;cursor:pointer}
 button:hover{opacity:0.8}
-input,select{background:var(--bg);color:var(--txt);border:2px solid var(--border);padding:8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
-.small{font-size:11px;color:var(--txt);text-align:center;margin-top:5px;opacity:0.8}
-.verdict{font-size:32px;text-align:center;font-weight:bold;color:var(--txt)}
-.percent{font-size:20px;text-align:center;color:var(--txt);margin-top:5px}
-.timer{font-size:16px;color:var(--txt);font-weight:bold;text-align:center}
-.tpsl{font-size:16px;text-align:center;color:var(--txt);margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
-.sr{font-size:14px;text-align:center;color:#ff0;margin-top:5px;font-weight:bold}
-.info{font-size:13px;color:var(--txt);margin-top:5px;text-align:center}
+input,select{background:#000;color:#0f0;border:2px solid #0f0;padding:8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
+.small{font-size:11px;color:#0f0;text-align:center;margin-top:5px;opacity:0.8}
+.verdict{font-size:32px;text-align:center;font-weight:bold;color:#0f0}
+.percent{font-size:20px;text-align:center;color:#0f0;margin-top:5px}
+.timer{font-size:16px;color:#0f0;font-weight:bold;text-align:center}
+.tpsl{font-size:16px;text-align:center;color:#0f0;margin-top:8px;border-top:1px solid #0f0;padding-top:8px}
+.info{font-size:13px;color:#0f0;margin-top:5px;text-align:center}
 .history{font-size:18px;text-align:center;margin-top:5px;letter-spacing:5px}
 .session{font-size:14px;text-align:center;color:#ff0;margin-top:5px;font-weight:bold}
 .spread{font-size:13px;text-align:center;color:#0ff;margin-top:3px}
 .news{font-size:14px;text-align:center;color:#f00;margin-top:5px;font-weight:bold;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:0.3}}
-h2{text-align:center;color:var(--txt);margin:8px 0}
+h2{text-align:center;color:#0f0;margin:8px 0}
 .up{color:#0f0}.down{color:#f00}
-.bottombar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:15px;margin-bottom:10px}
-.bottombar button{width:100%;font-size:14px;padding:10px}
+.bottombar{display:flex;gap:5px;margin-top:15px;margin-bottom:10px}
+.bottombar button{width:48%}
 .tv-signal{font-size:32px;text-align:center;font-weight:bold;margin-top:8px;padding:15px;border-radius:8px;border:3px solid}
 .tv-signal.buy{background:#003300;color:#0f0;border-color:#0f0;animation:pulse 1s infinite}
 .tv-signal.sell{background:#330000;color:#f00;border-color:#f00;animation:pulse 1s infinite}
 .tv-signal.neutral{background:#333300;color:#ff0;border-color:#ff0}
 @keyframes pulse{50%{opacity:0.6}}
 .tv-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:10px}
-.tv-item{padding:12px;text-align:center;border-radius:5px;border:2px solid var(--border);font-size:18px;font-weight:bold}
+.tv-item{padding:12px;text-align:center;border-radius:5px;border:2px solid #0f0;font-size:18px;font-weight:bold}
 .tv-item.buy{border-color:#0f0;color:#0f0;background:#002200}
 .tv-item.sell{border-color:#f00;color:#f00;background:#220000}
 .tv-item.neutral{border-color:#ff0;color:#ff0;background:#222200}
 </style></head><body>
 
-<h2>🪙 XAUUSD AI v6.3 PRO</h2>
+<h2>🪙 XAUUSD AI v6.1 BOTTOM BTN</h2>
 
 <div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
@@ -54,7 +52,6 @@ h2{text-align:center;color:var(--txt);margin:8px 0}
 <div class="news" id="news"></div>
 <div class="spread" id="spread">Bid: --- | Ask: --- | Спред: ---</div>
 <div class="info" id="dayRange">24h: -- | High: -- | Low: --</div>
-<div class="sr" id="srLevels">S/R: Загрузка...</div>
 </div>
 
 <div class="box">
@@ -67,7 +64,6 @@ h2{text-align:center;color:var(--txt);margin:8px 0}
 <div class="box">
 <b>Настройки</b><br>
 Таймфрейм: <select id="tf"><option>5min</option><option>15min</option><option>30min</option><option>1h</option></select><br>
-Авто TP/SL по ATR: <select id="autoTP"><option value="on">Включено</option><option value="off">Выключено</option></select><br>
 TP: <input id="tp" type="number" value="50"> пунктов<br>
 SL: <input id="sl" type="number" value="30"> пунктов<br>
 API Key: <input id="key" type="password" placeholder="TWELVE DATA"><br>
@@ -78,6 +74,7 @@ API Key: <input id="key" type="password" placeholder="TWELVE DATA"><br>
 
 <div class="box" id="details">Загрузка...</div>
 
+<!-- Блок "КУДА ИДУТ ДЕНЬГИ" -->
 <div class="box">
 <b>🎯 КУДА ИДУТ ДЕНЬГИ - AI Анализ</b>
 <div id="tvSignal" class="tv-signal neutral">Загрузка...</div>
@@ -86,18 +83,13 @@ API Key: <input id="key" type="password" placeholder="TWELVE DATA"><br>
 <div class="tv-item neutral" id="tv5m">5m: ---</div>
 <div class="tv-item neutral" id="tv15m">15m: ---</div>
 </div>
-<small style="opacity:0.6">Логика: EMA10+EMA20+RSI + ATR для TP/SL</small>
+<small style="opacity:0.6">Логика: EMA10+EMA20+RSI как у TradingView</small>
 </div>
 
+<!-- КНОПКИ ТЕМА И ЭКСПОРТ ТЕПЕРЬ ВНИЗУ -->
 <div class="bottombar">
-<button onclick="setTheme('dark')">🌙 Тёмная</button>
-<button onclick="setTheme('light')">☀️ Белая</button>
-<button onclick="setTheme('neon')">⚡ Неон</button>
-</div>
-<div class="bottombar">
+<button onclick="toggleTheme()">🌓 Тема</button>
 <button onclick="exportCSV()">📊 Экспорт CSV</button>
-<button onclick="scan()">🔄 Сканировать</button>
-<button onclick="clearHistory()">🗑️ Очистить</button>
 </div>
 
 <script>
@@ -106,34 +98,34 @@ let signalHistory = JSON.parse(localStorage.getItem('sigHist')||'[]');
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
 
-let currentTheme=localStorage.getItem('theme')||'dark';
-setTheme(currentTheme);
-
-function setTheme(theme){
-let root=document.documentElement;
-if(theme==='dark'){
-root.style.setProperty('--bg','#000');root.style.setProperty('--txt','#0f0');
-root.style.setProperty('--box','#000');root.style.setProperty('--btn','#0f0');
-root.style.setProperty('--btntxt','#000');root.style.setProperty('--border','#0f0');
-}else if(theme==='light'){
-root.style.setProperty('--bg','#f5f5f5');root.style.setProperty('--txt','#005500');
-root.style.setProperty('--box','#fff');root.style.setProperty('--btn','#005500');
-root.style.setProperty('--btntxt','#fff');root.style.setProperty('--border','#005500');
-}else if(theme==='neon'){
-root.style.setProperty('--bg','#0a0015');root.style.setProperty('--txt','#ff00ff');
-root.style.setProperty('--box','#1a0033');root.style.setProperty('--btn','#ff00ff');
-root.style.setProperty('--btntxt','#000');root.style.setProperty('--border','#00ffff');
-}
-localStorage.setItem('theme',theme);
-beep('test');
+if(localStorage.getItem('theme')==='light'){
+document.body.style.background='#f5f5f5';
+document.body.style.color='#005500';
+document.querySelectorAll('.box,.price-box').forEach(b=>{b.style.background='#fff';b.style.borderColor='#005500'});
+document.querySelectorAll('button').forEach(b=>{b.style.background='#005500';b.style.color='#fff'});
+document.querySelectorAll('input,select').forEach(i=>{i.style.background='#fff';i.style.color='#005500';i.style.borderColor='#005500'});
+document.querySelectorAll('.price,.dir,.verdict,.percent,.timer,.tpsl,.info,.small,.h2').forEach(t=>t.style.color='#005500');
 }
 
-function clearHistory(){
-localStorage.removeItem('sigHist');
-localStorage.removeItem('lastData');
-signalHistory=[];
-document.getElementById('history').innerHTML='История: ---';
-alert('✅ История очищена');
+function toggleTheme(){
+let isLight=document.body.style.background==='#f5f5f5';
+if(isLight){
+document.body.style.background='#000';
+document.body.style.color='#0f0';
+document.querySelectorAll('.box,.price-box').forEach(b=>{b.style.background='#000';b.style.borderColor='#0f0'});
+document.querySelectorAll('button').forEach(b=>{b.style.background='#0f0';b.style.color='#000'});
+document.querySelectorAll('input,select').forEach(i=>{i.style.background='#000';i.style.color='#0f0';i.style.borderColor='#0f0'});
+document.querySelectorAll('.price,.dir,.verdict,.percent,.timer,.tpsl,.info,.small,h2').forEach(t=>t.style.color='#0f0');
+localStorage.setItem('theme','dark');
+}else{
+document.body.style.background='#f5f5f5';
+document.body.style.color='#005500';
+document.querySelectorAll('.box,.price-box').forEach(b=>{b.style.background='#fff';b.style.borderColor='#005500'});
+document.querySelectorAll('button').forEach(b=>{b.style.background='#005500';b.style.color='#fff'});
+document.querySelectorAll('input,select').forEach(i=>{i.style.background='#fff';i.style.color='#005500';i.style.borderColor='#005500'});
+document.querySelectorAll('.price,.dir,.verdict,.percent,.timer,.tpsl,.info,.small,h2').forEach(t=>t.style.color='#005500');
+localStorage.setItem('theme','light');
+}
 beep('test');
 }
 
@@ -152,7 +144,6 @@ beep('test');
 function save(){
 key=document.getElementById('key').value.trim();
 localStorage.setItem('td_key',key);
-localStorage.setItem('autoTP',document.getElementById('autoTP').value);
 beep('test');
 alert('✅ Сохранено!');
 scan();startTimer();
@@ -275,7 +266,7 @@ let hist=signalHistory.map(s=>s==='up'?'▲':s==='down'?'▼':'■').join(' ');
 document.getElementById('history').innerHTML=`История: ${hist}`;
 
 let data=JSON.parse(localStorage.getItem('lastData')||'[]');
-data.unshift({time:new Date().toLocaleTimeString(),sig=sig,price=price.toFixed(2),ema9=ema9.toFixed(2),ema21=ema21.toFixed(2),rsi=rsi.toFixed(1),atr=atr.toFixed(2),state:state});
+data.unshift({time:new Date().toLocaleTimeString(),sig:sig,price:price.toFixed(2),ema9:ema9.toFixed(2),ema21:ema21.toFixed(2),rsi:rsi.toFixed(1),atr:atr.toFixed(2),state:state});
 if(data.length>50)data.pop();
 localStorage.setItem('lastData',JSON.stringify(data));
 }
@@ -286,12 +277,11 @@ document.getElementById('session').innerHTML=`Сессия: ${getSession()}`;
 let newsState=checkNews();
 if(!key){alert('Вставь API ключ!');return;}
 let tf=document.getElementById('tf').value;
-let autoTP=document.getElementById('autoTP').value;
 let tp=parseInt(document.getElementById('tp').value);
 let sl=parseInt(document.getElementById('sl').value);
 
 try{
-let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=50&apikey=${key}`;
+let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=20&apikey=${key}`;
 let r=await fetch(url);let d=await r.json();
 if(d.status==='error'){document.getElementById('details').innerHTML='Ошибка: '+d.message;return;}
 
@@ -299,19 +289,6 @@ let raw=d.values.map(x=>parseFloat(x.close));
 let c=raw.map(p=>p/1.57);
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14), atr=ATR(d.values,14);
-
-// Уровни S/R за 20 свечей
-let high20=Math.max(...raw.slice(0,20))/1.57;
-let low20=Math.min(...raw.slice(0,20))/1.57;
-document.getElementById('srLevels').innerHTML=`S/R: Сопротивление ${high20.toFixed(2)}$ | Поддержка ${low20.toFixed(2)}$`;
-
-// Авто TP/SL по ATR если включено
-if(autoTP==='on'){
-tp=Math.round(atr*100*2); // ATR*2
-sl=Math.round(atr*100*1.5); // ATR*1.5
-document.getElementById('tp').value=tp;
-document.getElementById('sl').value=sl;
-}
 
 let url24=`https://api.twelvedata.com/quote?symbol=XAU/USD&apikey=${key}`;
 let r24=await fetch(url24);let d24=await r24.json();
@@ -350,12 +327,12 @@ lastDir='wait';addHistory('wait',price,ema9,ema21,rsi,atr,market.state);
 }else if(score>=2){
 verdict.innerHTML='ВВЕРХ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
-tpsl.innerHTML=`TP: ${(price+tp/100).toFixed(2)}$ | SL: ${(price-sl/100).toFixed(2)}$ ${autoTP==='on'?'[ATR]':''}`;
+tpsl.innerHTML=`TP: ${(price+tp/100).toFixed(2)} | SL: ${(price-sl/100).toFixed(2)}`;
 if(lastDir!=='up'){beep('up');lastDir='up';addHistory('up',price,ema9,ema21,rsi,atr,market.state);}
 }else if(score<=-2){
 verdict.innerHTML='ВНИЗ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
-tpsl.innerHTML=`TP: ${(price-tp/100).toFixed(2)}$ | SL: ${(price+sl/100).toFixed(2)}$ ${autoTP==='on'?'[ATR]':''}`;
+tpsl.innerHTML=`TP: ${(price-tp/100).toFixed(2)} | SL: ${(price+sl/100).toFixed(2)}`;
 if(lastDir!=='down'){beep('down');lastDir='down';addHistory('down',price,ema9,ema21,rsi,atr,market.state);}
 }else{
 verdict.innerHTML='ФЛЭТ';
@@ -368,7 +345,6 @@ document.getElementById('details').innerHTML=`<b>Данные:</b><br>
 Цена: $${price.toFixed(2)}<br>
 EMA9: $${ema9.toFixed(2)} | EMA21: $${ema21.toFixed(2)}<br>
 RSI: ${rsi.toFixed(1)} | ATR: ${atr.toFixed(2)}$<br>
-S/R: ${low20.toFixed(2)}$ - ${high20.toFixed(2)}$<br>
 Score: ${score}/3`;
 
 getTVSignals();
@@ -379,26 +355,15 @@ getTVSignals();
 function EMA(arr,p){let k=2/(p+1),ema=arr[0];for(let i=1;i<arr.length;i++)ema=arr[i]*k+ema*(1-k);return ema}
 function RSI(arr,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=arr[i]-arr[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
 function ATR(values,p){let sum=0;for(let i=1;i<=p&&i<values.length;i++){let h=parseFloat(values[i].high),l=parseFloat(values[i].low),pc=parseFloat(values[i-1].close);let tr=Math.max(h-l,Math.abs(h-pc),Math.abs(l-pc));sum+=tr}return sum/p/1.57}
-
-// РАЗНЫЕ ЗВУКИ для BUY/SELL
 function beep(type){
 try{let a=new AudioContext();
-if(type==='up'){
-// Восходящий звук для BUY
-for(let i=0;i<4;i++)setTimeout(()=>{let o=a.createOscillator();o.frequency.value=400+i*100;o.connect(a.destination);o.start();o.stop(a.currentTime+0.15);},i*150)
-}else if(type==='down'){
-// Нисходящий звук для SELL
-for(let i=0;i<4;i++)setTimeout(()=>{let o=a.createOscillator();o.frequency.value=800-i*100;o.connect(a.destination);o.start();o.stop(a.currentTime+0.15);},i*150)
-}else if(type==='news'){
-for(let i=0;i<5;i++)setTimeout(()=>{let o=a.createOscillator();o.frequency.value=1500;o.connect(a.destination);o.start();o.stop(a.currentTime+0.1);},i*150)
-}else{
-let o=a.createOscillator();o.frequency.value=900;o.connect(a.destination);o.start();o.stop(a.currentTime+0.3)}}
+if(type==='up'){for(let i=0;i<3;i++)setTimeout(()=>{let o=a.createOscillator();o.frequency.value=600+i*200;o.connect(a.destination);o.start();o.stop(a.currentTime+0.2);},i*250)}
+else if(type==='down'){for(let i=0;i<3;i++)setTimeout(()=>{let o=a.createOscillator();o.frequency.value=1000-i*200;o.connect(a.destination);o.start();o.stop(a.currentTime+0.2);},i*250)}
+else if(type==='news'){for(let i=0;i<5;i++)setTimeout(()=>{let o=a.createOscillator();o.frequency.value=1500;o.connect(a.destination);o.start();o.stop(a.currentTime+0.1);},i*150)}
+else{let o=a.createOscillator();o.frequency.value=900;o.connect(a.destination);o.start();o.stop(a.currentTime+0.3)}}
 catch(e){}}
 
-if(key){
-document.getElementById('autoTP').value=localStorage.getItem('autoTP')||'on';
-scan();startTimer();
-}
+if(key){scan();startTimer();}
 document.getElementById('tf').onchange=()=>{scan();startTimer();};
 addHistory('wait',0,0,0,0,0,'Загрузка');
 </script></body></html>
