@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v6.4 FIXED</title>
+<title>XAUUSD AI v6.6 CLOCK</title>
 <style id="themeStyle">
 :root{--bg:#000;--txt:#0f0;--box:#000;--btn:#0f0;--btntxt:#000;--border:#0f0}
 body{background:var(--bg);color:var(--txt);font-family:monospace;padding:15px;margin:0;font-size:14px;transition:0.3s}
+.clock-box{border:3px solid var(--border);padding:8px;margin:0 0 15px 0;border-radius:8px;background:var(--bg);text-align:center}
+.clock{font-size:28px;font-weight:bold;color:var(--txt);letter-spacing:2px}
+.date{font-size:14px;color:var(--txt);opacity:0.8;margin-top:3px}
 .box{border:2px solid var(--border);padding:12px;margin:10px 0;border-radius:8px;background:var(--box);transition:0.3s}
 .price-box{border:3px solid var(--border);background:var(--bg);text-align:center}
 .price{font-size:42px;font-weight:bold;margin:5px 0;color:var(--txt)}
@@ -43,7 +46,13 @@ h2{text-align:center;color:var(--txt);margin:8px 0}
 .tv-item.neutral{border-color:#ff0;color:#ff0;background:#222200}
 </style></head><body>
 
-<h2>🪙 XAUUSD AI v6.4 FIXED</h2>
+<!-- ЧАСЫ В САМОМ ВЕРХУ -->
+<div class="clock-box">
+<div class="clock" id="clock">00:00:00 UTC</div>
+<div class="date" id="date">Загрузка даты...</div>
+</div>
+
+<h2>🪙 XAUUSD AI v6.6 CLOCK</h2>
 
 <div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
@@ -68,6 +77,7 @@ h2{text-align:center;color:var(--txt);margin:8px 0}
 <b>Настройки</b><br>
 Таймфрейм: <select id="tf"><option>5min</option><option>15min</option><option>30min</option><option>1h</option></select><br>
 Авто TP/SL по ATR: <select id="autoTP"><option value="on">Включено</option><option value="off">Выключено</option></select><br>
+Push-уведомления: <button id="pushBtn" onclick="requestPush()">🔔 Включить алерты</button><br>
 TP: <input id="tp" type="number" value="50"> пунктов<br>
 SL: <input id="sl" type="number" value="30"> пунктов<br>
 API Key: <input id="key" type="password" placeholder="TWELVE DATA"><br>
@@ -86,7 +96,7 @@ API Key: <input id="key" type="password" placeholder="TWELVE DATA"><br>
 <div class="tv-item neutral" id="tv5m">5m: ---</div>
 <div class="tv-item neutral" id="tv15m">15m: ---</div>
 </div>
-<small style="opacity:0.6">Логика: EMA10+EMA20+RSI + ATR для TP/SL</small>
+<small style="opacity:0.6">Логика: EMA10+EMA20+RSI + ATR + UTC Clock</small>
 </div>
 
 <div class="bottombar">
@@ -108,6 +118,39 @@ document.getElementById('key').value=key;
 
 let currentTheme=localStorage.getItem('theme')||'dark';
 setTheme(currentTheme);
+
+// ЧАСЫ UTC - обновляются каждую секунду
+function updateClock(){
+let now=new Date();
+let utc=now.toUTCString().split(' ');
+let time=utc[4];
+let date=utc[1]+' '+utc[2]+' '+utc[3];
+document.getElementById('clock').innerHTML=time+' UTC';
+document.getElementById('date').innerHTML=date;
+}
+updateClock();
+setInterval(updateClock,1000);
+
+// PUSH
+async function requestPush(){
+if('Notification' in window){
+let permission=await Notification.requestPermission();
+if(permission==='granted'){
+document.getElementById('pushBtn').innerHTML='✅ Алерты включены';
+alert('✅ Теперь телефон будет вибрировать при сигнале!');
+}else{
+alert('❌ Разреши уведомления в настройках браузера');
+}
+}else{
+alert('Твой браузер не поддерживает уведомления');
+}
+}
+
+function sendPush(title,body){
+if(Notification.permission==='granted'){
+new Notification(title,{body:body,icon:'https://cdn-icons-png.flaticon.com/512/5212/5212657.png',vibrate:[200,100,200]});
+}
+}
 
 function setTheme(theme){
 let root=document.documentElement;
@@ -179,8 +222,8 @@ return 'СИДНЕЙ 🌙 Спокойная';
 function checkNews(){
 let h=new Date().getUTCHours();
 let m=new Date().getUTCMinutes();
-if(h==13&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ NFP ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return 'NEWS';}
-if(h==15&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ CPI ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return 'NEWS';}
+if(h==13&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ NFP ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');sendPush('⚠️ NFP ЧЕРЕЗ 10 МИНУТ','Торговля XAUUSD запрещена!');return 'NEWS';}
+if(h==15&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ CPI ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');sendPush('⚠️ CPI ЧЕРЕЗ 10 МИНУТ','Торговля XAUUSD запрещена!');return 'NEWS';}
 document.getElementById('news').innerHTML='';
 return 'OK';
 }
@@ -213,10 +256,12 @@ if(signals['5min'].signal=='BUY' && signals['15min'].signal=='BUY'){
 tvBox.className='tv-signal buy';
 tvBox.innerHTML='▲ ДЕНЬГИ ИДУТ ВВЕРХ ▲▲';
 beep('up');
+sendPush('🟢 СИГНАЛ BUY XAUUSD','5m + 15m = BUY. Входим вверх!');
 }else if(signals['5min'].signal=='SELL' && signals['15min'].signal=='SELL'){
 tvBox.className='tv-signal sell';
 tvBox.innerHTML='▼ ДЕНЬГИ ИДУТ ВНИЗ ▼▼';
 beep('down');
+sendPush('🔴 СИГНАЛ SELL XAUUSD','5m + 15m = SELL. Входим вниз!');
 }else{
 tvBox.className='tv-signal neutral';
 tvBox.innerHTML='■ ФЛЭТ - ДЕНЬГИ СТОЯТ';
@@ -275,7 +320,7 @@ let hist=signalHistory.map(s=>s==='up'?'▲':s==='down'?'▼':'■').join(' ');
 document.getElementById('history').innerHTML=`История: ${hist}`;
 
 let data=JSON.parse(localStorage.getItem('lastData')||'[]');
-data.unshift({time:new Date().toLocaleTimeString(),sig:sig,price:price.toFixed(2),ema9:ema9.toFixed(2),ema21:ema21.toFixed(2),rsi:rsi.toFixed(1),atr:atr.toFixed(2),state:state});
+data.unshift({time:new Date().toUTCString().split(' ')[4],sig:sig,price:price.toFixed(2),ema9:ema9.toFixed(2),ema21:ema21.toFixed(2),rsi:rsi.toFixed(1),atr:atr.toFixed(2),state:state});
 if(data.length>50)data.pop();
 localStorage.setItem('lastData',JSON.stringify(data));
 }
@@ -300,12 +345,12 @@ let c=raw.map(p=>p/1.57);
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14), atr=ATR(d.values,14);
 
-// Уровни S/R за 20 свечей
+// S/R
 let high20=Math.max(...raw.slice(0,20))/1.57;
 let low20=Math.min(...raw.slice(0,20))/1.57;
 document.getElementById('srLevels').innerHTML=`S/R: Сопротивление ${high20.toFixed(2)}$ | Поддержка ${low20.toFixed(2)}$`;
 
-// Авто TP/SL по ATR
+// Авто TP/SL
 if(autoTP==='on'){
 tp=Math.round(atr*100*2);
 sl=Math.round(atr*100*1.5);
@@ -313,7 +358,7 @@ document.getElementById('tp').value=tp;
 document.getElementById('sl').value=sl;
 }
 
-// ФИКС NaN: защита + без деления на 1.57 для quote
+// Защита NaN
 let url24=`https://api.twelvedata.com/quote?symbol=XAU/USD&apikey=${key}`;
 let r24=await fetch(url24);let d24=await r24.json();
 
@@ -357,12 +402,12 @@ lastDir='wait';addHistory('wait',price,ema9,ema21,rsi,atr,market.state);
 verdict.innerHTML='ВВЕРХ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price+tp/100).toFixed(2)}$ | SL: ${(price-sl/100).toFixed(2)}$ ${autoTP==='on'?'[ATR]':''}`;
-if(lastDir!=='up'){beep('up');lastDir='up';addHistory('up',price,ema9,ema21,rsi,atr,market.state);}
+if(lastDir!=='up'){beep('up');sendPush('🟢 BUY XAUUSD',`Цена: ${price.toFixed(2)}$ TP:${(price+tp/100).toFixed(2)}$`);lastDir='up';addHistory('up',price,ema9,ema21,rsi,atr,market.state);}
 }else if(score<=-2){
 verdict.innerHTML='ВНИЗ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price-tp/100).toFixed(2)}$ | SL: ${(price+sl/100).toFixed(2)}$ ${autoTP==='on'?'[ATR]':''}`;
-if(lastDir!=='down'){beep('down');lastDir='down';addHistory('down',price,ema9,ema21,rsi,atr,market.state);}
+if(lastDir!=='down'){beep('down');sendPush('🔴 SELL XAUUSD',`Цена: ${price.toFixed(2)}$ TP:${(price-tp/100).toFixed(2)}$`);lastDir='down';addHistory('down',price,ema9,ema21,rsi,atr,market.state);}
 }else{
 verdict.innerHTML='ФЛЭТ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
