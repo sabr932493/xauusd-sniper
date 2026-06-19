@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v5.6.2 TV SIGNAL</title>
+<title>XAUUSD AI v5.8 SELF SIGNAL</title>
 <style>
 :root{--bg:#000;--txt:#0f0;--box:#000;--btn:#0f0;--btntxt:#000}
 body.light{--bg:#f5f5f5;--txt:#005500;--box:#fff;--btn:#005500;--btntxt:#fff}
@@ -31,20 +31,24 @@ h2{text-align:center;color:var(--txt);margin:8px 0}
 .up{color:#0f0}.down{color:#f00}
 .topbar{display:flex;gap:5px;margin-bottom:10px}
 .topbar button{width:48%}
-iframe{border-radius:8px;background:#131722}
-.tv-signal{font-size:28px;text-align:center;font-weight:bold;margin-top:8px;padding:12px;border-radius:8px;border:3px solid}
-.tv-signal.buy{background:#003300;color:#0f0;border-color:#0f0}
-.tv-signal.sell{background:#330000;color:#f00;border-color:#f00}
+iframe{border-radius:8px;background:#131722;border:none}
+.tv-signal{font-size:32px;text-align:center;font-weight:bold;margin-top:8px;padding:15px;border-radius:8px;border:3px solid}
+.tv-signal.buy{background:#003300;color:#0f0;border-color:#0f0;animation:pulse 1s infinite}
+.tv-signal.sell{background:#330000;color:#f00;border-color:#f00;animation:pulse 1s infinite}
 .tv-signal.neutral{background:#333300;color:#ff0;border-color:#ff0}
-.tv-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:8px}
-.tv-item{padding:8px;text-align:center;border-radius:5px;border:1px solid var(--txt);font-size:14px}
+@keyframes pulse{50%{opacity:0.6}}
+.tv-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:10px}
+.tv-item{padding:12px;text-align:center;border-radius:5px;border:2px solid var(--txt);font-size:18px;font-weight:bold}
+.tv-item.buy{border-color:#0f0;color:#0f0}
+.tv-item.sell{border-color:#f00;color:#f00}
+.tv-item.neutral{border-color:#ff0;color:#ff0}
 </style></head><body>
 <div class="topbar">
 <button onclick="toggleTheme()">🌓 Тема</button>
 <button onclick="exportCSV()">📊 Экспорт CSV</button>
 </div>
 
-<h2>🪙 XAUUSD AI v5.6.2 TV SIGNAL</h2>
+<h2>🪙 XAUUSD AI v5.8 SELF SIGNAL</h2>
 
 <div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
@@ -77,22 +81,16 @@ API Key: <input id="key" type="password" placeholder="TWELVE DATA"><br>
 
 <div class="box" id="details">Загрузка...</div>
 
-<!-- TradingView Widget через iframe -->
+<!-- Блок "КУДА ИДУТ ДЕНЬГИ" - наш собственный TV сигнал -->
 <div class="box">
-<b>TradingView График</b>
-<iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tv_xau&symbol=OANDA%3AXAUUSD&interval=1&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=rgba(0,0,0,1)&theme=dark&style=1&timezone=Etc%2FUTC&locale=ru" width="100%" height="350" frameborder="0" scrolling="no"></iframe>
-</div>
-
-<!-- Наш блок "КУДА ПИШЕТ РЫНОК" -->
-<div class="box">
-<b>🎯 КУДА ПИШЕТ РЫНОК - TradingView Анализ</b>
-<div id="tvSignal" class="tv-signal neutral">Загрузка TV...</div>
+<b>🎯 КУДА ИДУТ ДЕНЬГИ - AI Анализ</b>
+<div id="tvSignal" class="tv-signal neutral">Загрузка...</div>
 <div class="tv-grid">
-<div class="tv-item" id="tv1m">1m: ---</div>
-<div class="tv-item" id="tv5m">5m: ---</div>
-<div class="tv-item" id="tv15m">15m: ---</div>
+<div class="tv-item neutral" id="tv1m">1m: ---</div>
+<div class="tv-item neutral" id="tv5m">5m: ---</div>
+<div class="tv-item neutral" id="tv15m">15m: ---</div>
 </div>
-<small style="opacity:0.6">Обновляется каждые 30 сек. BUY=▲ ВВЕРХ | SELL=▼ ВНИЗ | NEUTRAL=■ ФЛЭТ</small>
+<small style="opacity:0.6">Логика TradingView: EMA10+EMA20+RSI. BUY=▲ ВВЕРХ | SELL=▼ ВНИЗ | NEUTRAL=■ ФЛЭТ</small>
 </div>
 
 <script>
@@ -156,44 +154,52 @@ document.getElementById('news').innerHTML='';
 return 'OK';
 }
 
-// Новая функция: получаем TV сигнал
+// НОВАЯ ФУНКЦИЯ: Считаем TV сигнал сами, без API
 async function getTVSignals(){
 if(!key)return;
 try{
-const timeframes=['1min','5min','15min'];
-const results={};
-for(let tf of timeframes){
-let url=`https://api.twelvedata.com/technical_analysis?symbol=XAU/USD&interval=${tf}&apikey=${key}`;
+const tfs=['1min','5min','15min'];
+for(let tf of tfs){
+let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=50&apikey=${key}`;
 let r=await fetch(url);let d=await r.json();
-let signal=d.recommendation?.trend || 'NEUTRAL';
-results[tf]=signal;
-}
-// Выводим
-document.getElementById('tv1m').innerHTML=`1m: ${results['1min']} ${results['1min']=='BUY'?'▲':results['1min']=='SELL'?'▼':'■'}`;
-document.getElementById('tv5m').innerHTML=`5m: ${results['5min']} ${results['5min']=='BUY'?'▲':results['5min']=='SELL'?'▼':'■'}`;
-document.getElementById('tv15m').innerHTML=`15m: ${results['15min']} ${results['15min']=='BUY'?'▲':results['15min']=='SELL'?'▼':'■'}`;
+let raw=d.values.map(x=>parseFloat(x.close));
+let c=raw.map(p=>p/1.57);
 
-// Итоговый сигнал
+let ema10=EMA(c,10), ema20=EMA(c,20), rsi=RSI(c,14);
+let signal='NEUTRAL';
+let cls='neutral';
+
+// Логика TradingView: EMA10>EMA20 + RSI>50 = BUY
+if(ema10>ema20 && rsi>50){signal='BUY';cls='buy'}
+if(ema10<ema20 && rsi<50){signal='SELL';cls='sell'}
+
+document.getElementById('tv'+tf.replace('min','m')).className='tv-item '+cls;
+document.getElementById('tv'+tf.replace('min','m')).innerHTML=`${tf.replace('min','m')}: ${signal} ${signal=='BUY'?'▲':signal=='SELL'?'▼':'■'}`;
+
+// Итоговый сигнал по 5m+15m
+if(tf=='15min'){
+let s1m=document.getElementById('tv1m').innerText.includes('BUY')?'BUY':document.getElementById('tv1m').innerText.includes('SELL')?'SELL':'NEUTRAL';
+let s5m=document.getElementById('tv5m').innerText.includes('BUY')?'BUY':document.getElementById('tv5m').innerText.includes('SELL')?'SELL':'NEUTRAL';
+let s15m=signal;
+
 let tvBox=document.getElementById('tvSignal');
-if(results['5min']=='BUY' && results['15min']=='BUY'){
+if(s5m=='BUY' && s15m=='BUY'){
 tvBox.className='tv-signal buy';
-tvBox.innerHTML='▲ ЕДЕМ ВВЕРХ - BUY BUY BUY';
+tvBox.innerHTML='▲ ДЕНЬГИ ИДУТ ВВЕРХ ▲▲';
 beep('up');
-}else if(results['5min']=='SELL' && results['15min']=='SELL'){
+}else if(s5m=='SELL' && s15m=='SELL'){
 tvBox.className='tv-signal sell';
-tvBox.innerHTML='▼ ЕДЕМ ВНИЗ - SELL SELL SELL';
+tvBox.innerHTML='▼ ДЕНЬГИ ИДУТ ВНИЗ ▼▼';
 beep('down');
 }else{
 tvBox.className='tv-signal neutral';
-tvBox.innerHTML='■ ФЛЭТ - ЖДЁМ СИГНАЛ';
+tvBox.innerHTML='■ ФЛЭТ - ДЕНЬГИ СТОЯТ';
 }
-}catch(e){console.log('TV error:',e)}
+}catch(e){console.log('Error:',e);document.getElementById('tvSignal').innerHTML='Ошибка API ключа'}
 }
 
 function getMarketState(price,ema9,ema21,rsi,atr,spread,newsState){
-let stateBox=document.getElementById('marketState');
 let state='',className='';
-
 if(newsState==='NEWS'){
 state='НОВОСТИ - СТОП ТОРГОВЛЯ 🛑';
 className='news';
@@ -318,16 +324,12 @@ tpsl.innerHTML='';
 lastDir='wait';addHistory('wait',price,ema9,ema21,rsi,atr,market.state);
 }
 
-document.getElementById('details').innerHTML=`<b>Данные индикаторов:</b><br>
+document.getElementById('details').innerHTML=`<b>Данные:</b><br>
 Цена: $${price.toFixed(2)}<br>
-EMA9: $${ema9.toFixed(2)}<br>
-EMA21: $${ema21.toFixed(2)}<br>
-RSI14: ${rsi.toFixed(1)}<br>
-<b>ATR14: ${atr.toFixed(2)}$</b> - ${atr>2?'Высокая волатильность':'Нормальная'}<br>
-<b>До High: ${(high24-price).toFixed(2)}$ | До Low: ${(price-low24).toFixed(2)}$</b><br><br>
+EMA9: $${ema9.toFixed(2)} | EMA21: $${ema21.toFixed(2)}<br>
+RSI: ${rsi.toFixed(1)} | ATR: ${atr.toFixed(2)}$<br>
 Score: ${score}/3`;
 
-// Запрашиваем TV сигналы
 getTVSignals();
 
 }catch(e){document.getElementById('details').innerHTML='Ошибка сети: '+e}
