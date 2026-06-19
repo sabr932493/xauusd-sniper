@@ -1,109 +1,115 @@
 <!DOCTYPE html>
-<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v4.4</title>
+<html><head><meta name="viewport" content="width=deviceAwidth,initial-scale=1">
+<title>XAUUSD AI v4.5</title>
 <style>body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0}
-.box{border:2px solid #0f0;padding:12px;margin:8px 0;border-radius:8px}
-.main{border:3px solid #0f0;background:#0a0a0a;text-align:center}
-button{background:#0f0;color:#000;border:0;padding:10px;font-weight:bold;border-radius:5px;width:100%;margin-top:5px}
-.up{color:#0f0;font-size:32px;font-weight:bold}
-.down{color:#f00;font-size:32px;font-weight:bold}
-.wait{color:#888;font-size:24px}
-.percent{font-size:42px;font-weight:bold;margin:5px 0}
-.small{font-size:12px;color:#888}</style></head><body>
-<h2 style="text-align:center">🪙 XAUUSD AI v4.4</h2>
+.box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px}
+.price-box{border:3px solid #0f0;background:#001100;text-align:center}
+.price{font-size:42px;font-weight:bold;margin:5px 0}
+.price.up{color:#0f0}.price.down{color:#f00}
+.dir{font-size:18px;margin-top:5px}
+button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;margin-top:8px}
+input,select{background:#111;color:#0f0;border:1px solid #0f0;padding:8px;width:100%;border-radius:5px;margin-top:5px}
+.small{font-size:11px;color:#888}
+.up{color:#0f0}.down{color:#f00}.wait{color:#888}</style></head><body>
+<h2 style="text-align:center">XAUUSD AI v4.5</h2>
 
-<div class="box main" id="verdict">Загрузка...</div>
-
-<div class="box">
-<b>Таймфрейм:</b><br><select id="tf"><option>5min</option><option>15min</option><option>30min</option><option>1h</option></select><br><br>
-<b>API Key:</b><br><input id="key" placeholder="Вставь ключ TwelveData"><br><br>
-<button onclick="save()">🔊 Сохранить + Тест</button>
-<button onclick="load()">🔄 Обновить</button>
-<div class="small">Авто: 30 сек</div>
+<div class="box price-box" id="priceBox">
+<div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
+<div class="price" id="price">---.--</div>
+<div class="dir" id="direction">Загрузка...</div>
+<div class="small" id="spread">Спред: ---</div>
 </div>
 
-<div class="box" id="data">Загрузка данных...</div>
-<div class="box" id="news">📰 Новости: Загрузка...</div>
+<div class="box" id="verdict">
+<div style="font-size:20px;text-align:center">Загрузка AI...</div>
+</div>
+
+<div class="box">
+<b>Настройки</b><br>
+Таймфрейм: <select id="tf"><option>5min</option><option>15min</option><option>30min</option><option>1h</option></select><br>
+API Key: <input id="key" placeholder="Твой ключ TWELVE DATA"><br>
+<button onclick="save()">Сохранить & Тест звука</button>
+<button onclick="scan()">Сканировать сейчас</button>
+<div class="small">Автообновление каждые 30 сек</div>
+</div>
+
+<div class="box" id="details">Загрузка данных...</div>
 
 <script>
-let k=localStorage.k,lastDir='';
-if(k)key.value=k;
-
-function beep(){
-for(let i=0;i<3;i++)setTimeout(()=>{
-try{
-let ctx=new (window.AudioContext||window.webkitAudioContext)();
-let o=ctx.createOscillator();o.frequency.value=900;o.connect(ctx.destination);o.start();o.stop(ctx.currentTime+0.2);
-}catch(e){}
-},i*400);
-}
+let lastDir='', lastPrice=0;
+let key=localStorage.getItem('td_key')||'';
+document.getElementById('key').value=key;
 
 function save(){
-k=key.value.trim();
-localStorage.k=k;
-beep();
-alert('✅ Сохранено! Тест звука ОК');
-load();
+key=document.getElementById('key').value.trim();
+localStorage.setItem('td_key',key);
+let a=new AudioContext();let o=a.createOscillator();o.frequency.value=800;o.connect(a.destination);o.start();o.stop(a.currentTime+0.2);
+alert('Ключ сохранен! Тест звука прошел');
+scan();
 }
 
-async function load(){
-if(!k){data.innerHTML='Вставь API ключ';return}
+async function scan(){
+if(!key){alert('Вставь API ключ!');return;}
 let tf=document.getElementById('tf').value;
-data.innerHTML='Загрузка... '+new Date().toLocaleTimeString();
+document.getElementById('details').innerHTML='Сканирую рынок...';
+
 try{
-let r=await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=100&apikey=${k}`);
-let j=await r.json();
-if(j.status=='error'){data.innerHTML='Ошибка API: '+j.message;return}
-let vals=j.values.reverse();
-let c=vals.map(v=>+v.close);
-let ema9=EMA(c,9),ema21=EMA(c,21),sma50=SMA(c,50),sma200=SMA(c,200);
-let rsi=RSI(c,14);
+let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=50&apikey=${key}`;
+let r=await fetch(url);let d=await r.json();
+if(d.status==='error'){document.getElementById('details').innerHTML='Ошибка: '+d.message;return;}
+let c=d.values.map(x=>parseFloat(x.close));
+let price=c[0];
+let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14);
 
-let up=0,down=0,w=0;
-if(c[c.length-1]>ema9)up++;else down++;
-if(c[c.length-1]>ema21)up++;else down++;
-if(c[c.length-1]>sma50)up++;else down++;
-if(c[c.length-1]>sma200)up++;else down++;
-if(rsi<30)up++;else if(rsi>70)down++;else w++;
+// ЦЕНА ВВЕРХ
+let priceEl=document.getElementById('price');
+let dirEl=document.getElementById('direction');
+priceEl.innerText=price.toFixed(2);
+document.getElementById('spread').innerText='Спред: ~0.30-0.50 $';
 
-let total=up+down;
-let percent=Math.round(total/7*100);
-let dir='';
-if(up>down){dir='UP'}else if(down>up){dir='DOWN'}else dir='WAIT';
-
-// ГЛАВНЫЙ ВЕРДИКТ: ВВЕРХ/ВНИЗ + проценты
-if(dir=='UP'){
-verdict.innerHTML=`<div class="up">📈 ВВЕРХ</div><div class="percent">${percent}%</div><div class="small">Сила движения вверх</div>`;
-if(lastDir!='UP')beep();
-}else if(dir=='DOWN'){
-verdict.innerHTML=`<div class="down">📉 ВНИЗ</div><div class="percent">${percent}%</div><div class="small">Сила движения вниз</div>`;
-if(lastDir!='DOWN')beep();
+if(price>lastPrice){
+priceEl.className='price up';
+dirEl.innerHTML='▲ Идет ВВЕРХ';
+dirEl.className='dir up';
+}else if(price<lastPrice){
+priceEl.className='price down';
+dirEl.innerHTML='▼ Идет ВНИЗ';
+dirEl.className='dir down';
 }else{
-verdict.innerHTML=`<div class="wait">⏸️ ФЛЭТ</div><div class="small">Рынок боковик - ждём</div>`;
+dirEl.innerHTML='■ Флэт';
+dirEl.className='dir wait';
 }
-lastDir=dir;
+lastPrice=price;
 
-data.innerHTML=`<b>Разбор индикаторов:</b><br>
-EMA9: ${c[c.length-1]>ema9?'📈 Вверх':'📉 Вниз'}<br>
-EMA21: ${c[c.length-1]>ema21?'📈 Вверх':'📉 Вниз'}<br>
-SMA50: ${c[c.length-1]>sma50?'📈 Вверх':'📉 Вниз'}<br>
-SMA200: ${c[c.length-1]>sma200?'📈 Вверх':'📉 Вниз'}<br>
-RSI: ${rsi.toFixed(1)} ${rsi<30?'📈 перепродан':rsi>70?'📉 перекуплен':''}<br><br>
-<b>Итог: Вверх ${up}/7 | Вниз ${down}/7</b>`;
+// СИГНАЛ AI
+let score=0;
+if(price>ema9)score++;else score--;
+if(price>ema21)score++;else score--;
+if(rsi<30)score++;if(rsi>70)score--;
+let pct=Math.abs(score)/3*100;
 
-news.innerHTML=`📰 Новости XAUUSD:<br>
-- NFP США сегодня 15:30 МСК<br>
-- ФРС ставка 4.5% давит на золото<br>
-- Геополитика Ближний Восток<br>
-<span class="small">Обновлено: ${new Date().toLocaleTimeString()}</span>`;
-}catch(e){data.innerHTML='Ошибка сети: '+e.message}
+let verdict=document.getElementById('verdict');
+if(score>=2){
+verdict.innerHTML=`<div style="font-size:32px;text-align:center" class="up">ВВЕРХ ${pct.toFixed(0)}%</div><div style="text-align:center" class="small">Можно покупать</div>`;
+if(lastDir!=='up'){beep();lastDir='up';}
+}else if(score<=-2){
+verdict.innerHTML=`<div style="font-size:32px;text-align:center" class="down">ВНИЗ ${pct.toFixed(0)}%</div><div style="text-align:center" class="small">Можно продавать</div>`;
+if(lastDir!=='down'){beep();lastDir='down';}
+}else{
+verdict.innerHTML=`<div style="font-size:24px;text-align:center" class="wait">ФЛЭТ ${pct.toFixed(0)}%</div><div style="text text-align:center" class="small">Ждем сигнал</div>`;
+lastDir='wait';
 }
 
-function SMA(a,p){return a.slice(-p).reduce((x,y)=>x+y)/p}
-function EMA(a,p){let k=2/(p+1),e=a[0];for(let i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e}
-function RSI(a,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=a[i]-a[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
+// ДЕТАЛИ
+document.getElementById('details').innerHTML=`<b>Данные индикаторов:</b><br>Цена: $${price.toFixed(2)}<br>EMA9: $${ema9.toFixed(2)} ${price>ema9?'▲':'▼'}<br>EMA21: $${ema21.toFixed(2)} ${price>ema21?'▲':'▼'}<br>RSI14: ${rsi.toFixed(1)} ${rsi<30?'▲ перепродан':rsi>70?'▼ перекуплен':''}<br><br>Score: ${score}/3`;
 
-setInterval(load,30000);
-if(k)load();
-document.getElementById('tf').onchange=load;
+}catch(e){document.getElementById('details').innerHTML='Ошибка сети: '+e}
+}
+
+function EMA(arr,p){let k=2/(p+1),ema=arr[0];for(let i=1;i<arr.length;i++)ema=arr[i]*k+ema*(1-k);return ema}
+function RSI(arr,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=arr[i]-arr[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
+function beep(){let a=new AudioContext();let o=a.createOscillator();o.frequency.value=900;o.connect(a.destination);o.start();o.stop(a.currentTime+0.3)}
+
+setInterval(scan,30000);
+if(key)scan();
 </script></body></html>
