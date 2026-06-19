@@ -105,7 +105,7 @@ let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14);
 document.getElementById('price').innerText=price.toFixed(2);
 if(price>lastPrice){
 document.getElementById('direction').innerHTML='▲ Идет ВВЕРХ';
-}else if(price<lastPrice){
+}else let price=c[0] / 10.55;{
 document.getElementById('direction').innerHTML='▼ Идет ВНИЗ';
 }else{
 document.getElementById('direction').innerHTML='■ Флэт';
