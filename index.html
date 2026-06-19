@@ -1,105 +1,20 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI Sniper v2</title>
-<style>
-body{background:#0a0a0a;color:#0f0;font-family:monospace;padding:20px}
-.box{border:2px solid #0f0;padding:15px;margin:10px 0;border-radius:8px}
-button{background:#0f0;color:#000;border:0;padding:10px 20px;border-radius:5px;font-weight:bold}
-select{background:#111;color:#0f0;border:1px solid #0f0;padding:8px;border-radius:5px}
-.red{color:#f00}.green{color:#0f0}.gray{color:#888}
-</style>
-</head>
-<body>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XAUUSD Sniper</title>
+<style>body{background:#000;color:#0f0;font-family:monospace;padding:20px}
+.box{border:2px solid #0f0;padding:15px;margin:10px 0}button{background:#0f0;color:#000;border:0;padding:10px}</style>
+</head><body>
 <h2>🪙 XAUUSD AI Sniper v2</h2>
-
 <div class="box">
-Таймфрейм:
-<select id="tf">
-<option value="5min">5 минут</option>
-<option value="15min">15 минут</option>
-<option value="30min">30 минут</option>
-<option value="1h">1 час</option>
-</select>
-<br><br>
-TwelveData API Key:<br>
-<input id="key" placeholder="Вставь ключ сюда" style="width:100%;padding:8px;background:#111;color:#0f0;border:1px solid #0f0">
-<br><br>
-<button onclick="saveKey()">Сохранить + Звук ВКЛ</button>
-</div>
-
-<div class="box" id="data">Вставь API ключ выше...</div>
-
-<audio id="alertSound" preload="auto">
-<source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
-</audio>
-
+<select id="tf"><option value="5min">5 минут</option><option value="15min">15 минут</option><option value="30min">30 минут</option><option value="1h">1 час</option></select><br><br>
+<input id="key" placeholder="TwelveData API Key" style="width:100%;padding:8px;background:#111;color:#0f0"><br><br>
+<button onclick="save()">Сохранить + Звук ВКЛ</button></div>
+<div class="box" id="data">Вставь API ключ...</div>
+<audio id="s" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 <script>
-let key=localStorage.getItem('tdkey');
-let lastSignal='';
-if(key) document.getElementById('key').value=key;
-
-function saveKey(){
-key=document.getElementById('key').value;
-localStorage.setItem('tdkey',key);
-document.getElementById('alertSound').play(); // тест звука
-alert('Ключ сохранен! Звук включен');
-loadData();
-}
-
-async function loadData(){
-if(!key) return;
-let tf=document.getElementById('tf').value;
-let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=100&apikey=${key}`;
-let r=await fetch(url);
-let d=await r.json();
-if(d.status=='error'){document.getElementById('data').innerHTML='Ошибка: '+d.message;return}
-
-let price=d.values[0].close;
-let closes=d.values.map(v=>+v.close).reverse();
-
-// Простой расчет индикаторов
-let ema9=calcEMA(closes,9);
-let ema21=calcEMA(closes,21);
-let sma50=calcSMA(closes,50);
-let sma200=calcSMA(closes,200);
-let rsi=calcRSI(closes,14);
-
-let buy=0,sell=0,wait=0;
-let html=`<b>Цена: $${price}</b> | TF: ${tf}<br><br><b>Голосование:</b><br>`;
-
-if(price>ema9) buy++; else sell++;
-html+=`EMA9: <span class="${price>ema9?'green':'red'}">${price>ema9?'BUY':'SELL'}</span><br>`;
-
-if(price>ema21) buy++; else sell++;
-html+=`EMA21: <span class="${price>ema21?'green':'red'}">${price>ema21?'BUY':'SELL'}</span><br>`;
-
-if(price>sma50) buy++; else sell++;
-html+=`SMA50: <span class="${price>sma50?'green':'red'}">${price>sma50?'BUY':'SELL'}</span><br>`;
-
-if(price>sma200) buy++; else sell++;
-html+=`SMA200: <span class="${price>sma200?'green':'red'}">${price>sma200?'BUY':'SELL'}</span><br>`;
-
-if(rsi<30) buy++; else if(rsi>70) sell++; else wait++;
-html+=`RSI: <span class="${rsi<30?'green':rsi>70?'red':'gray'}">${rsi<30?'BUY':rsi>70?'SELL':'WAIT'} ${rsi.toFixed(1)}</span><br>`;
-
-html+=`<br><b>Вердикт: `;
-let signal='';
-if(buy>=4){signal='BUY';html+=`<span class="green">BUY ${Math.round(buy/6*100)}%</span>`}
-else if(sell>=4){signal='SELL';html+=`<span class="red">SELL ${Math.round(sell/6*100)}%</span>`}
-else{signal='WAIT';html+=`<span class="gray">WAIT ${Math.round(wait/6*100)}%</span>`}
-html+=`</b>`;
-
-document.getElementById('data').innerHTML=html;
-
-// ЗВУК если сигнал изменился и сильный
-if(signal!=lastSignal && (buy>=4 || sell>=4)){
-document.getElementById('alertSound').play();
-lastSignal=signal;
-if(Notification.permission==='granted'){
-new Notification('XAUUSD Sniper', {body: signal+' '+tf+' '+Math.round(Math.max(buy,sell)/6*100)+'%'});
-}
-}
-
-function calcSMA(arr,p){return arr
+let k=localStorage.k;if(k)key.value=k;
+function save(){k=key.value;localStorage.k=k;s.play();alert('Звук ОК');load()}
+async function load(){if(!k)return;let t=tf.value;let r=await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${t}&outputsize=50&apikey=${k}`);
+let d=await r.json();if(d.values){data.innerHTML='Цена: $'+d.values[0].close+'<br>TF: '+t+'<br>Ключ работает!'}else data.innerHTML='Ошибка: '+d.message}
+setInterval(load,60000);if(k)load();tf.onchange=load;
+</script></body></html>
