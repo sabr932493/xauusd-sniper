@@ -54,7 +54,7 @@ API Key:
 let lastDir='', lastPrice=0, countdown=60, timerInterval;
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
-const DIV=10.55; // ← делитель для TwelveData XAU/USD
+const DIV=10.55;
 
 function toggleKey(){
 let k=document.getElementById('key');
@@ -99,11 +99,10 @@ try{
 let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=50&apikey=${key}`;
 let r=await fetch(url);let d=await r.json();
 if(d.status==='error'){document.getElementById('details').innerHTML='Ошибка: '+d.message;return;}
-let c=d.values.map(x=>parseFloat(x.close)/DIV); // ← делим сразу массив
+let c=d.values.map(x=>parseFloat(x.close)/DIV);
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14);
 
-// ЦЕНА - ВСЁ ЗЕЛЁНОЕ
 document.getElementById('price').innerText=price.toFixed(2);
 if(price>lastPrice){
 document.getElementById('direction').innerHTML='▲ Идет ВВЕРХ';
@@ -114,7 +113,6 @@ document.getElementById('direction').innerHTML='■ Флэт';
 }
 lastPrice=price;
 
-// СИГНАЛ AI - ТОЛЬКО ЗЕЛЁНЫЙ ТЕКСТ
 let score=0;
 if(price>ema9)score++;else score--;
 if(price>ema21)score++;else score--;
@@ -138,7 +136,6 @@ percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 lastDir='wait';
 }
 
-// ДЕТАЛИ - ВСЁ ЗЕЛЁНОЕ, EMA уже поделены
 document.getElementById('details').innerHTML=`<b>Данные индикаторов:</b><br>
 Цена: $${price.toFixed(2)}<br>
 EMA9: $${ema9.toFixed(2)} ${price>ema9?'▲':'▼'}<br>
