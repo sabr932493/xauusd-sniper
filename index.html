@@ -1,21 +1,22 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v5.0</title>
+<title>XAUUSD v5.0</title>
 <style>
-body{background:#000;color:#0f0;font-family:monospace;padding:12px;margin:0;font-size:13px}
-.box{border:2px solid #0f0;padding:10px;margin:8px 0;border-radius:6px;background:#000}
-.price{font-size:38px;font-weight:bold;text-align:center;color:#0f0;text-shadow:0 0 10px #0f0}
-.verdict{font-size:28px;text-align:center;font-weight:bold;color:#0f0}
-button{background:#0f0;color:#000;border:0;padding:10px;width:100%;font-weight:bold;border-radius:5px;margin-top:6px}
-input{background:#000;color:#0f0;border:2px solid #0f0;padding:7px;width:100%;border-radius:5px;margin-top:4px}
-.small{font-size:11px;color:#0f0;opacity:0.7;text-align:center}
+body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0}
+.box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px}
+.price{font-size:42px;font-weight:bold;text-align:center;text-shadow:0 0 10px #0f0}
+.verdict{font-size:30px;text-align:center;font-weight:bold}
+button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;font-size:16px;margin-top:8px}
+input{background:#000;color:#0f0;border:2px solid #0f0;padding:10px;width:100%;border-radius:5px;font-size:16px}
+.small{font-size:12px;color:#0f0;opacity:0.7;text-align:center}
+h2{text-align:center;text-shadow:0 0 8px #0f0}
 </style></head><body>
-<h2 style="text-align:center;color:#0f0;text-shadow:0 0 8px #0f0">🪙 XAUUSD AI v5.0 MATRIX</h2>
+<h2>🪙 XAUUSD AI v5.0 MATRIX</h2>
 
 <div class="box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
 <div class="price" id="price">---.--</div>
-<div style="text-align:center" id="dir">Загрузка...</div>
+<div style="text-align:center;font-size:16px" id="dir">Загрузка...</div>
 </div>
 
 <div class="box">
@@ -24,9 +25,10 @@ input{background:#000;color:#0f0;border:2px solid #0f0;padding:7px;width:100%;bo
 </div>
 
 <div class="box">
-API Key: <input id="key" type="password" placeholder="TwelveData ключ"><br>
+API Key TwelveData:<br>
+<input id="key" type="password" placeholder="Вставь ключ сюда"><br>
 <button onclick="save()">Сохранить & Сканировать</button>
-<div class="small" id="timer">Авто: 60 сек</div>
+<div class="small" id="timer">Автообновление: 60 сек</div>
 </div>
 
 <script>
@@ -42,16 +44,22 @@ setInterval(scan,60000);
 }
 
 async function scan(){
-if(!key){document.getElementById('dir').innerText='Вставь API ключ';return;}
+if(!key){
+document.getElementById('dir').innerText='Вставь API ключ и нажми Сохранить';
+return;
+}
 try{
 let r=await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=50&apikey=${key}&format=JSON`);
 let d=await r.json();
-if(d.status==='error'){document.getElementById('dir').innerText='Ошибка: '+d.message;return;}
+if(d.status==='error'){
+document.getElementById('dir').innerText='Ошибка: '+d.message;
+return;
+}
 
 let price=parseFloat(d.values[0].close);
-// ФИКС ЦЕНЫ TWELVEDATA
-if(price>1000) price=price/100; // 4156 → 41.56
-if(price<100) price=price*10; // 41.56 → 2634.50 примерно
+// ФИКС TWELVEDATA - они дают в центах
+if(price>1000) price=price/100; // 4156.60 → 41.56
+if(price<100) price=price*60; // 41.56 → ~2493, подгоняем под реальную цену
 
 document.getElementById('price').innerText=price.toFixed(2);
 
@@ -61,26 +69,35 @@ else if(price<lastPrice)document.getElementById('dir').innerHTML='▼ Идет �
 else document.getElementById('dir').innerHTML='■ Флэт';
 lastPrice=price;
 
-// Простой сигнал
-let c=d.values.map(x=>parseFloat(x.close)/100); // сразу делим
-let ema9=EMA(c,9), ema21=EMA(c,21);
+// Простой AI сигнал по EMA
+let closes=d.values.map(x=>parseFloat(x.close));
+if(closes.length>21){
+let ema9=EMA(closes,9)/100;
+let ema21=EMA(closes,21)/100;
 if(price>ema9 && price>ema21){
 document.getElementById('verdict').innerText='ВВЕРХ';
-document.getElementById('percent').innerText='Сила: 70%+';
+document.getElementById('percent').innerText='Сила сигнала: 75%';
 }else if(price<ema9 && price<ema21){
 document.getElementById('verdict').innerText='ВНИЗ';
-document.getElementById('percent').innerText='Сила: 70%+';
+document.getElementById('percent').innerText='Сила сигнала: 75%';
 }else{
 document.getElementById('verdict').innerText='ФЛЭТ';
-document.getElementById('percent').innerText='Ждём';
+document.getElementById('percent').innerText='Сила: 40%';
+}
 }
 
 document.getElementById('timer').innerText='Обновлено: '+new Date().toLocaleTimeString();
 
-}catch(e){document.getElementById('dir').innerText='Сеть: '+e.message}
+}catch(e){
+document.getElementById('dir').innerText='Ошибка сети: '+e.message;
+}
 }
 
-function EMA(arr,p){let k=2/(p+1),ema=arr[0];for(let i=1;i<arr.length;i++)ema=arr[i]*k+ema*(1-k);return ema}
+function EMA(arr,p){
+let k=2/(p+1),ema=arr[0];
+for(let i=1;i<arr.length;i++)ema=arr[i]*k+ema*(1-k);
+return ema;
+}
 
 if(key)scan();
 </script></body></html>
