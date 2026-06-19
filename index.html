@@ -86,7 +86,7 @@ let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&ou
 let r=await fetch(url);let d=await r.json();
 if(d.status==='error'){document.getElementById('details').innerHTML='Ошибка: '+d.message;return;}
 let raw=d.values.map(x=>parseFloat(x.close));
-let c=raw.map(p=>p/10.55);
+let c=raw.map(p=>p/1.57);
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14);
 
