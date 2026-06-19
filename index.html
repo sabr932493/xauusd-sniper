@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v4.6</title>
+<title>XAUUSD AI v4.7 SECRET</title>
 <style>body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0}
 .box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px}
 .price-box{border:3px solid #0f0;background:#001100;text-align:center}
@@ -8,11 +8,13 @@
 .price.up{color:#0f0}.price.down{color:#f00}
 .dir{font-size:18px;margin-top:5px}
 button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;margin-top:8px}
-input,select{background:#111;color:#0f0;border:1px solid #0f0;padding:8px;width:100%;border-radius:5px;margin-top:5px}
+.input-wrap{position:relative}
+input,select{background:#111;color:#0f0;border:1px solid #0f0;padding:8px 40px 8px 8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
+.eye{position:absolute;right:10px;top:32px;cursor:pointer;font-size:20px;user-select:none}
 .small{font-size:11px;color:#888;text-align:center;margin-top:5px}
 .up{color:#0f0}.down{color:#f00}.wait{color:#888}
 .timer{font-size:16px;color:#0f0;font-weight:bold}</style></head><body>
-<h2 style="text-align:center">XAUUSD AI v4.6</h2>
+<h2 style="text-align:center">XAUUSD AI v4.7 SECRET</h2>
 
 <div class="box price-box" id="priceBox">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
@@ -28,7 +30,13 @@ input,select{background:#111;color:#0f0;border:1px solid #0f0;padding:8px;width:
 <div class="box">
 <b>Настройки</b><br>
 Таймфрейм: <select id="tf"><option>5min</option><option>15min</option><option>30min</option><option>1h</option></select><br>
-API Key: <input id="key" placeholder="Твой ключ TWELVE DATA"><br>
+
+API Key:
+<div class="input-wrap">
+<input id="key" type="password" placeholder="Твой ключ TWELVE DATA">
+<span class="eye" onclick="toggleKey()">👁️</span>
+</div><br>
+
 <button onclick="save()">Сохранить & Тест звука</button>
 <button onclick="scan()">Сканировать сейчас</button>
 <div class="timer" id="timer">Автообновление: 30 сек</div>
@@ -41,11 +49,23 @@ let lastDir='', lastPrice=0, countdown=30, timerInterval;
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
 
+function toggleKey(){
+let k=document.getElementById('key');
+let eye=document.querySelector('.eye');
+if(k.type==='password'){
+k.type='text';
+eye.innerText='🙈';
+}else{
+k.type='password';
+eye.innerText='👁️';
+}
+}
+
 function save(){
 key=document.getElementById('key').value.trim();
 localStorage.setItem('td_key',key);
 let a=new AudioContext();let o=a.createOscillator();o.frequency.value=800;o.connect(a.destination);o.start();o.stop(a.currentTime+0.2);
-alert('Ключ сохранен! Тест звука прошел');
+alert('Ключ сохранен! Режим SECRET активен');
 scan();
 }
 
@@ -75,7 +95,6 @@ let c=d.values.map(x=>parseFloat(x.close));
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14);
 
-// ЦЕНА
 let priceEl=document.getElementById('price');
 let dirEl=document.getElementById('direction');
 priceEl.innerText=price.toFixed(2);
@@ -94,7 +113,6 @@ dirEl.className='dir wait';
 }
 lastPrice=price;
 
-// СИГНАЛ AI
 let score=0;
 if(price>ema9)score++;else score--;
 if(price>ema21)score++;else score--;
@@ -113,8 +131,7 @@ verdict.innerHTML=`<div style="font-size:24px;text-align:center" class="wait">Ф
 lastDir='wait';
 }
 
-// ДЕТАЛИ
-document.getElementById('details').innerHTML=`<b>Данные индикаторов:</b><br>Цена: $${price.toFixed(2)}<br>EMA9: $${ema9.toFixed(2)} ${price>ema9?'▲':'▼'}<br>EMA21: $${ema21.toFixed(2)} ${price>ema21?'▲':'▼'}<br>RSI14: ${rsi.toFixed(1)} ${rsi<30?'▲ перепродан':rsi>70?'▼ перекуплен':''}<br><br>Score: ${score}/3`;
+document.getElementById('details').innerHTML=`<b>Данные:</b><br>Цена: $${price.toFixed(2)}<br>EMA9: $${ema9.toFixed(2)} ${price>ema9?'▲':'▼'}<br>EMA21: $${ema21.toFixed(2)} ${price>ema21?'▲':'▼'}<br>RSI14: ${rsi.toFixed(1)}<br><br>Score: ${score}/3`;
 
 }catch(e){document.getElementById('details').innerHTML='Ошибка сети: '+e}
 }
