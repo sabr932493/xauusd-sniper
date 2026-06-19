@@ -1,41 +1,82 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI Sniper v3</title>
-<style>body{background:#000;color:#0f0;font-family:monospace;padding:15px}
+<title>XAUUSD AI Sniper v3.1</title>
+<style>
+body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0}
 .box{border:2px solid #0f0;padding:15px;margin:10px 0;border-radius:8px}
-button{background:#0f0;color:#000;border:0;padding:10px 20px;font-weight:bold;border-radius:5px}
-select,input{background:#111;color:#0f0;border:1px solid #0f0;padding:8px;border-radius:5px;width:100%}
-.green{color:#0f0}.red{color:#f00}.gray{color:#888}</style></head><body>
-<h2>🪙 XAUUSD AI Sniper v3</h2>
+button{background:#0f0;color:#000;border:0;padding:12px 20px;font-weight:bold;border-radius:5px;width:100%;font-size:16px}
+select,input{background:#111;color:#0f0;border:1px solid #0f0;padding:10px;border-radius:5px;width:100%;font-size:16px;margin-top:5px}
+.green{color:#0f0}.red{color:#f00}.gray{color:#888}h2{text-align:center;margin:10px 0}
+</style></head><body>
+<h2>🪙 XAUUSD AI Sniper v3.1</h2>
 <div class="box">
-Таймфрейм: <select id="tf"><option value="5min">5 минут</option><option value="15min">15 минут</option><option value="30min">30 минут</option><option value="1h">1 час</option></select><br><br>
-API Key: <input id="key" placeholder="TwelveData API Key"><br><br>
-<button onclick="save()">Сохранить + Звук ВКЛ</button></div>
-<div class="box" id="data">Вставь API ключ...</div>
-<audio id="s" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+<b>Таймфрейм:</b><br>
+<select id="tf">
+<option value="5min">5 минут</option>
+<option value="15min">15 минут</option>
+<option value="30min">30 минут</option>
+<option value="1h">1 час</option>
+</select><br><br>
+<b>API Key:</b><br>
+<input id="key" placeholder="TwelveData API Key" type="text"><br><br>
+<button onclick="save()">🔊 Сохранить + Тест Звука</button></div>
+<div class="box" id="data">Вставь API ключ и жми кнопку...</div>
+<audio id="s" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
 <script>
-let k=localStorage.k,lastSig='';if(k)key.value=k;
-function save(){k=key.value;localStorage.k=k;s.play();Notification.requestPermission();load()}
-async function load(){if(!k)return;let t=tf.value;let r=await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${t}&outputsize=100&apikey=${k}`);
-let d=await r.json();if(!d.values){data.innerHTML='Ошибка: '+d.message;return}
-let c=d.values.map(v=>+v.close).reverse();let price=c[c.length-1];
+let k=localStorage.k,lastSig='';
+if(k)key.value=k;
+function save(){
+k=key.value.trim();
+localStorage.k=k;
+s.volume=1.0;
+s.play();
+Notification.requestPermission();
+alert('🔊 Звук проверен! Если слышно - всё ок');
+load();
+}
+async function load(){
+if(!k)return;
+let t=tf.value;
+data.innerHTML='Загрузка...';
+try{
+let r=await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${t}&outputsize=100&apikey=${k}`);
+let j=await r.json();
+if(j.status=='error'){data.innerHTML='Ошибка: '+j.message+'<br>Проверь API ключ';return}
+if(!j.values){data.innerHTML='Нет данных';return}
+let c=j.values.map(v=>+v.close).reverse();
+let price=c[c.length-1];
 let ema9=EMA(c,9),ema21=EMA(c,21),sma50=SMA(c,50),sma200=SMA(c,200),rsi=RSI(c,14);
-let b=0,s=0,w=0,h=`<b>Цена: $${price.toFixed(2)}</b> | TF: ${t}<br><br><b>Голосование 7 индикаторов:</b><br>`;
-if(price>ema9)b++;else s++;h+=`EMA9: <span class="${price>ema9?'green':'red'}">${price>ema9?'BUY':'SELL'}</span><br>`;
-if(price>ema21)b++;else s++;h+=`EMA21: <span class="${price>ema21?'green':'red'}">${price>ema21?'BUY':'SELL'}</span><br>`;
-if(price>sma50)b++;else s++;h+=`SMA50: <span class="${price>sma50?'green':'red'}">${price>sma50?'BUY':'SELL'}</span><br>`;
-if(price>sma200)b++;else s++;h+=`SMA200: <span class="${price>sma200?'green':'red'}">${price>sma200?'BUY':'SELL'}</span><br>`;
-if(rsi<30)b++;else if(rsi>70)s++;else w++;h+=`RSI: <span class="${rsi<30?'green':rsi>70?'red':'gray'}">${rsi<30?'BUY':rsi>70?'SELL':'WAIT'} ${rsi.toFixed(1)}</span><br>`;
-h+=`ATR: <span class="gray">WAIT</span><br>Stoch: <span class="gray">WAIT</span><br>`;
-h+=`<br><b>Вердикт: `;let sig='';
-if(b>=4){sig='BUY';h+=`<span class="green">BUY ${Math.round(b/7*100)}%</span>`}
-else if(s>=4){sig='SELL';h+=`<span class="red">SELL ${Math.round(s/7*100)}%</span>`}
-else{sig='WAIT';h+=`<span class="gray">WAIT ${Math.round(w/7*100)}%</span>`}
-h+=`</b>`;data.innerHTML=h;
-if(sig!=lastSig&&(b>=4||s>=4)){s.play();if(Notification.permission=='granted')new Notification('XAUUSD '+sig,{body:t+' '+Math.round(Math.max(b,s)/7*100)+'%'})}
-lastSig=sig}
+let b=0,se=0,w=0;
+let h=`<b>Цена: $${price.toFixed(2)}</b> | TF: ${t}<br><br><b>Голосование 7 индикаторов:</b><br>`;
+if(price>ema9){b++;h+=`EMA9: <span class="green">BUY</span><br>`}else{se++;h+=`EMA9: <span class="red">SELL</span><br>`}
+if(price>ema21){b++;h+=`EMA21: <span class="green">BUY</span><br>`}else{se++;h+=`EMA21: <span class="red">SELL</span><br>`}
+if(price>sma50){b++;h+=`SMA50: <span class="green">BUY</span><br>`}else{se++;h+=`SMA50: <span class="red">SELL</span><br>`}
+if(price>sma200){b++;h+=`SMA200: <span class="green">BUY</span><br>`}else{se++;h+=`SMA200: <span class="red">SELL</span><br>`}
+if(rsi<30){b++;h+=`RSI: <span class="green">BUY ${rsi.toFixed(1)}</span><br>`}
+else if(rsi>70){se++;h+=`RSI: <span class="red">SELL ${rsi.toFixed(1)}</span><br>`}
+else{w++;h+=`RSI: <span class="gray">WAIT ${rsi.toFixed(1)}</span><br>`}
+w++;h+=`ATR: <span class="gray">WAIT</span><br>`;
+w++;h+=`Stoch: <span class="gray">WAIT</span><br>`;
+h+=`<br><b>Вердикт: `;
+let sig='';
+let percent=Math.round(Math.max(b,se,w)/7*100);
+if(b>=4){sig='BUY';h+=`<span class="green">BUY ${percent}%</span>`}
+else if(se>=4){sig='SELL';h+=`<span class="red">SELL ${percent}%</span>`}
+else{sig='WAIT';h+=`<span class="gray">WAIT ${percent}%</span>`}
+h+=`</b>`;
+data.innerHTML=h;
+if(sig!=lastSig&&(b>=4||se>=4)){
+s.volume=1.0;
+s.play();
+if(Notification.permission=='granted'){
+new Notification('🚨 XAUUSD '+sig,{body:t+' Сигнал '+percent+'%'});
+}
+lastSig=sig;
+}catch(e){data.innerHTML='Ошибка сети. Обнови страницу.'}
 function SMA(a,p){return a.slice(-p).reduce((x,y)=>x+y)/p}
 function EMA(a,p){let k=2/(p+1),e=a[0];for(let i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e}
-function RSI(a,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=a[i]-a[i-1];if(ch>0)g+=ch;else l-=ch}return 100-100/(1+g/p/(l/p||0.001))}
-setInterval(load,60000);if(k)load();tf.onchange=load;
+function RSI(a,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=a[i]-a[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
+setInterval(load,60000);
+if(k)load();
+tf.onchange=load;
 </script></body></html>
