@@ -11,13 +11,12 @@ button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:b
 button:hover{background:#0a0}
 .input-wrap{position:relative}
 input,select{background:#000;color:#0f0;border:2px solid #0f0;padding:8px 40px 8px 8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
-input:focus,select:focus{outline:none;border-color:#0f0;box-shadow:0 0 5px #0f0}
-.eye{position:absolute;right:10px;top:32px;cursor:pointer;font-size:20px;user-select:none}
+.eye{position:absolute;right:10px;top:32px;cursor:pointer;font-size:20px}
 .small{font-size:11px;color:#0f0;text-align:center;margin-top:5px;opacity:0.8}
 .verdict{font-size:32px;text-align:center;font-weight:bold;color:#0f0}
 .percent{font-size:20px;text-align:center;color:#0f0;margin-top:5px}
 .timer{font-size:16px;color:#0f0;font-weight:bold;text-align:center}
-h2{text-align:center;color:#0f0;margin:8px 0;text-shadow:0 0 10px #0f0}
+h2{text-align:center;color:#0f0;margin:8px 0}
 </style></head><body>
 <h2>🪙 XAUUSD AI v4.8 MATRIX</h2>
 
@@ -25,7 +24,7 @@ h2{text-align:center;color:#0f0;margin:8px 0;text-shadow:0 0 10px #0f0}
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
 <div class="price" id="price">---.--</div>
 <div class="dir" id="direction">Идет ВВЕРХ ▲</div>
-<div class="small" id="spread">Спред: ~0.30-0.50 $</div>
+<div class="small">Спред: ~0.30-0.50 $</div>
 </div>
 
 <div class="box">
@@ -34,15 +33,13 @@ h2{text-align:center;color:#0f0;margin:8px 0;text-shadow:0 0 10px #0f0}
 </div>
 
 <div class="box">
-<b style="color:#0f0">Настройки</b><br>
+<b>Настройки</b><br>
 Таймфрейм: <select id="tf"><option>5min</option><option>15min</option><option>30min</option><option>1h</option></select><br>
-
 API Key:
 <div class="input-wrap">
 <input id="key" type="password" placeholder="Твой ключ TWELVE DATA">
 <span class="eye" onclick="toggleKey()">👁️</span>
 </div><br>
-
 <button onclick="save()">Сохранить & Тест звука</button>
 <button onclick="scan()">Сканировать сейчас</button>
 <div class="timer" id="timer">Автообновление: 60 сек</div>
@@ -54,20 +51,17 @@ API Key:
 let lastDir='', lastPrice=0, countdown=60, timerInterval;
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
-const DIV=10.55;
 
 function toggleKey(){
 let k=document.getElementById('key');
-let eye=document.querySelector('.eye');
 k.type=k.type==='password'?'text':'password';
-eye.innerText=k.type==='password'?'👁️':'🙈';
 }
 
 function save(){
 key=document.getElementById('key').value.trim();
 localStorage.setItem('td_key',key);
 beep();
-alert('✅ Ключ сохранен! MATRIX режим активен');
+alert('✅ Ключ сохранен!');
 scan();
 startTimer();
 }
@@ -77,13 +71,13 @@ countdown=60;
 clearInterval(timerInterval);
 timerInterval=setInterval(()=>{
 countdown--;
-document.getElementById('timer').innerHTML=`Автообновление: <span style="color:#0f0">${countdown}</span> сек`;
+document.getElementById('timer').innerHTML=`Автообновление: ${countdown} сек`;
 if(countdown<=0){countdown=60;scan();}
 },1000);
 }
 
 async function scan(){
-document.getElementById('details').innerHTML='Сканирую рынок... '+new Date().toLocaleTimeString();
+document.getElementById('details').innerHTML='Сканирую рынок...';
 if(!key){alert('Вставь API ключ!');return;}
 let tf=document.getElementById('tf').value;
 
@@ -92,7 +86,7 @@ let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&ou
 let r=await fetch(url);let d=await r.json();
 if(d.status==='error'){document.getElementById('details').innerHTML='Ошибка: '+d.message;return;}
 let raw=d.values.map(x=>parseFloat(x.close));
-let c=raw.map(p=>p/DIV);
+let c=raw.map(p=>p/10.55);
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14);
 
@@ -125,8 +119,8 @@ lastDir='wait';
 
 document.getElementById('details').innerHTML=`<b>Данные индикаторов:</b><br>
 Цена: $${price.toFixed(2)}<br>
-EMA9: $${ema9.toFixed(2)} ${price>ema9?'▲':'▼'}<br>
-EMA21: $${ema21.toFixed(2)} ${price>ema21?'▲':'▼'}<br>
+EMA9: $${ema9.toFixed(2)}<br>
+EMA21: $${ema21.toFixed(2)}<br>
 RSI14: ${rsi.toFixed(1)}<br><br>
 Score: ${score}/3`;
 
