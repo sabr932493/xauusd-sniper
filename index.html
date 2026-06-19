@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v5.5 MARKET STATE</title>
+<title>XAUUSD AI v5.6 TV EDITION</title>
 <style>
 :root{--bg:#000;--txt:#0f0;--box:#000;--btn:#0f0;--btntxt:#000}
 body.light{--bg:#f5f5f5;--txt:#005500;--box:#fff;--btn:#005500;--btntxt:#fff}
@@ -31,13 +31,14 @@ h2{text-align:center;color:var(--txt);margin:8px 0}
 .up{color:#0f0}.down{color:#f00}
 .topbar{display:flex;gap:5px;margin-bottom:10px}
 .topbar button{width:48%}
+.tradingview-widget-container{margin-top:10px;border-radius:8px;overflow:hidden}
 </style></head><body>
 <div class="topbar">
 <button onclick="toggleTheme()">🌓 Тема</button>
 <button onclick="exportCSV()">📊 Экспорт CSV</button>
 </div>
 
-<h2>🪙 XAUUSD AI v5.5 MARKET STATE</h2>
+<h2>🪙 XAUUSD AI v5.6 TV EDITION</h2>
 
 <div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
@@ -69,6 +70,26 @@ API Key: <input id="key" type="password" placeholder="TWELVE DATA"><br>
 </div>
 
 <div class="box" id="details">Загрузка...</div>
+
+<!-- TradingView Widget 1m/5m/15m -->
+<div class="box">
+<b>TradingView Анализ 1m/5m/15m/1h</b>
+<div class="tradingview-widget-container">
+<div class="tradingview-widget-container__widget"></div>
+<script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
+{
+"interval": "1",
+"width": "100%",
+"isTransparent": true,
+"height": "450",
+"symbol": "OANDA:XAUUSD",
+"showIntervalTabs": true,
+"displayMode": "multiple",
+"locale": "ru"
+}
+</script>
+</div>
+</div>
 
 <script>
 let lastDir='', lastPrice=0, countdown=30, timerInterval;
@@ -135,29 +156,22 @@ function getMarketState(price,ema9,ema21,rsi,atr,spread,newsState){
 let stateBox=document.getElementById('marketState');
 let state='',className='';
 
-// 1. Новости - главный приоритет
 if(newsState==='NEWS'){
 state='НОВОСТИ - СТОП ТОРГОВЛЯ 🛑';
 className='news';
 return {state,className,canTrade:false};
 }
-
-// 2. Спред большой
 if(spread>1.5){
 state='СПРЕД БОЛЬШОЙ ⚠️ Риск высокий';
 className='flat';
 return {state,className,canTrade:false};
 }
-
-// 3. Флэт/Консолидация
 let emaDiff=Math.abs(ema9-ema21);
 if(emaDiff<0.5 && rsi>45 && rsi<55){
 state='ФЛЭТ/КОНСОЛИДАЦИЯ ■ Сиди на заборе';
 className='flat';
 return {state,className,canTrade:false};
 }
-
-// 4. Тренд
 if(price>ema9 && price>ema21 && ema9>ema21){
 state='ТРЕНД ВВЕРХ 🔥 Идеально для BUY';
 className='trend';
@@ -168,15 +182,11 @@ state='ТРЕНД ВНИЗ 🔥 Идеально для SELL';
 className='trend';
 return {state,className,canTrade:true};
 }
-
-// 5. Высокая волатильность
 if(atr>3){
 state='ВЫСОКАЯ ВОЛАТИЛЬНОСТЬ ⚡ Осторожно!';
 className='trend';
 return {state,className,canTrade:true};
 }
-
-// 6. Перекуп/Перепродан
 if(rsi>70){
 state='ПЕРЕКУП 📉 Скоро разворот вниз';
 className='flat';
@@ -187,7 +197,6 @@ state='ПЕРЕПРОДАН 📈 Скоро разворот вверх';
 className='flat';
 return {state,className,canTrade:true};
 }
-
 state='БОКОВИК ■ Ждём сигнал';
 className='flat';
 return {state,className,canTrade:false};
@@ -239,7 +248,6 @@ document.getElementById('dayRange').innerHTML=`24h: <span class="${chgClass}">${
 
 lastPrice=price;
 
-// Определяем рыночное состояние
 let market=getMarketState(price,ema9,ema21,rsi,atr,spread,newsState);
 let stateBox=document.getElementById('marketState');
 stateBox.innerHTML='СОСТОЯНИЕ: '+market.state;
@@ -255,7 +263,6 @@ let verdict=document.getElementById('verdict');
 let percent=document.getElementById('percent');
 let tpsl=document.getElementById('tpsl');
 
-// Блокируем сигнал если нельзя торговать
 if(!market.canTrade && score>=2 ||!market.canTrade && score<=-2){
 verdict.innerHTML='ФЛЭТ';
 percent.innerHTML='Сила: 0%';
@@ -285,7 +292,8 @@ EMA21: $${ema21.toFixed(2)}<br>
 RSI14: ${rsi.toFixed(1)}<br>
 <b>ATR14: ${atr.toFixed(2)}$</b> - ${atr>2?'Высокая волатильность':'Нормальная'}<br>
 <b>До High: ${(high24-price).toFixed(2)}$ | До Low: ${(price-low24).toFixed(2)}$</b><br><br>
-Score: ${score}/3`;
+Score: ${score}/3<br><br>
+<b>Смотри ниже виджет TradingView для 1m/5m/15m сигналов</b>`;
 
 }catch(e){document.getElementById('details').innerHTML='Ошибка сети: '+e}
 }
