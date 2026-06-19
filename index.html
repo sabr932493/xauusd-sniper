@@ -19,18 +19,16 @@ if(k)key.value=k;
 function beep(times=3){
 for(let i=0;i<times;i++){
 setTimeout(()=>{
-// Вибрация если есть
-if(navigator.vibrate) navigator.vibrate([200,100,200]);
-// Звук через WebAudio - громче чем audio тег
+if(navigator.vibrate) navigator.vibrate([300,100,300,100,300]);
 let ctx=new (window.AudioContext||window.webkitAudioContext)();
 let osc=ctx.createOscillator();
 let gain=ctx.createGain();
 osc.connect(gain);gain.connect(ctx.destination);
-osc.frequency.value=800;
-gain.gain.value=0.3;
+osc.frequency.value=900;
+gain.gain.value=0.5;
 osc.start();
-osc.stop(ctx.currentTime+0.2);
-},i*300);
+osc.stop(ctx.currentTime+0.3);
+},i*400);
 }
 }
 
@@ -39,7 +37,7 @@ k=key.value.trim();
 localStorage.k=k;
 beep(3);
 Notification.requestPermission();
-alert('🔊 Тревога протестирована! 3 пика + вибрация');
+alert('🔊 СИРЕНА! 3 пика + вибрация');
 load();
 }
 
@@ -82,7 +80,7 @@ lastSig=sig;
 }catch(e){data.innerHTML='Ошибка сети'}
 }
 function SMA(a,p){return a.slice(-p).reduce((x,y)=>x+y)/p}
-function EMA(a,p){let k=2/(p+1),e=a[0];for(let i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e}
+function EMA(a,p){let k=2/(n+1),e=a[0];for(let i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e}
 function RSI(a,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=a[i]-a[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
 setInterval(load,60000);
 if(k)load();
