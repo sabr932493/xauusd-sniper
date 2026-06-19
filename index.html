@@ -1,34 +1,40 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v4.7 SECRET</title>
-<style>body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0}
-.box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px}
+<title>XAUUSD AI v4.8 MATRIX</title>
+<style>
+body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0;font-size:14px}
+.box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px;background:#000}
 .price-box{border:3px solid #0f0;background:#001100;text-align:center}
-.price{font-size:42px;font-weight:bold;margin:5px 0}
-.price.up{color:#0f0}.price.down{color:#f00}
-.dir{font-size:18px;margin-top:5px}
-button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;margin-top:8px}
+.price{font-size:42px;font-weight:bold;margin:5px 0;color:#0f0}
+.dir{font-size:18px;margin-top:5px;color:#0f0}
+button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;margin-top:8px;font-size:16px}
+button:hover{background:#0a0}
 .input-wrap{position:relative}
-input,select{background:#111;color:#0f0;border:1px solid #0f0;padding:8px 40px 8px 8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
+input,select{background:#000;color:#0f0;border:2px solid #0f0;padding:8px 40px 8px 8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
+input:focus,select:focus{outline:none;border-color:#0f0;box-shadow:0 0 5px #0f0}
 .eye{position:absolute;right:10px;top:32px;cursor:pointer;font-size:20px;user-select:none}
-.small{font-size:11px;color:#888;text-align:center;margin-top:5px}
-.up{color:#0f0}.down{color:#f00}.wait{color:#888}
-.timer{font-size:16px;color:#0f0;font-weight:bold}</style></head><body>
-<h2 style="text-align:center">XAUUSD AI v4.7 SECRET</h2>
+.small{font-size:11px;color:#0f0;text-align:center;margin-top:5px;opacity:0.8}
+.verdict{font-size:32px;text-align:center;font-weight:bold;color:#0f0}
+.percent{font-size:20px;text-align:center;color:#0f0;margin-top:5px}
+.timer{font-size:16px;color:#0f0;font-weight:bold;text-align:center}
+h2{text-align:center;color:#0f0;margin:8px 0;text-shadow:0 0 10px #0f0}
+</style></head><body>
+<h2>🪙 XAUUSD AI v4.8 MATRIX</h2>
 
-<div class="box price-box" id="priceBox">
+<div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
 <div class="price" id="price">---.--</div>
-<div class="dir" id="direction">Загрузка...</div>
+<div class="dir" id="direction">Идет ВВЕРХ ▲</div>
 <div class="small" id="spread">Спред: ~0.30-0.50 $</div>
 </div>
 
-<div class="box" id="verdict">
-<div style="font-size:20px;text-align:center">Загрузка AI...</div>
+<div class="box">
+<div class="verdict" id="verdict">Загрузка AI...</div>
+<div class="percent" id="percent"></div>
 </div>
 
 <div class="box">
-<b>Настройки</b><br>
+<b style="color:#0f0">Настройки</b><br>
 Таймфрейм: <select id="tf"><option>5min</option><option>15min</option><option>30min</option><option>1h</option></select><br>
 
 API Key:
@@ -39,13 +45,13 @@ API Key:
 
 <button onclick="save()">Сохранить & Тест звука</button>
 <button onclick="scan()">Сканировать сейчас</button>
-<div class="timer" id="timer">Автообновление: 30 сек</div>
+<div class="timer" id="timer">Автообновление: 60 сек</div>
 </div>
 
 <div class="box" id="details">Загрузка данных...</div>
 
 <script>
-let lastDir='', lastPrice=0, countdown=30, timerInterval;
+let lastDir='', lastPrice=0, countdown=60, timerInterval;
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
 
@@ -64,19 +70,19 @@ eye.innerText='👁️';
 function save(){
 key=document.getElementById('key').value.trim();
 localStorage.setItem('td_key',key);
-let a=new AudioContext();let o=a.createOscillator();o.frequency.value=800;o.connect(a.destination);o.start();o.stop(a.currentTime+0.2);
-alert('Ключ сохранен! Режим SECRET активен');
+beep();
+alert('✅ Ключ сохранен! MATRIX режим активен');
 scan();
 }
 
 function startTimer(){
-countdown=30;
+countdown=60; // 1 МИНУТА
 clearInterval(timerInterval);
 timerInterval=setInterval(()=>{
 countdown--;
 document.getElementById('timer').innerHTML=`Автообновление: <span style="color:#0f0">${countdown}</span> сек`;
 if(countdown<=0){
-countdown=30;
+countdown=60;
 scan();
 }
 },1000);
@@ -95,24 +101,18 @@ let c=d.values.map(x=>parseFloat(x.close));
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14);
 
-let priceEl=document.getElementById('price');
-let dirEl=document.getElementById('direction');
-priceEl.innerText=price.toFixed(2);
-
+// ЦЕНА - ВСЁ ЗЕЛЁНОЕ
+document.getElementById('price').innerText=price.toFixed(2);
 if(price>lastPrice){
-priceEl.className='price up';
-dirEl.innerHTML='▲ Идет ВВЕРХ';
-dirEl.className='dir up';
+document.getElementById('direction').innerHTML='▲ Идет ВВЕРХ';
 }else if(price<lastPrice){
-priceEl.className='price down';
-dirEl.innerHTML='▼ Идет ВНИЗ';
-dirEl.className='dir down';
+document.getElementById('direction').innerHTML='▼ Идет ВНИЗ';
 }else{
-dirEl.innerHTML='■ Флэт';
-dirEl.className='dir wait';
+document.getElementById('direction').innerHTML='■ Флэт';
 }
 lastPrice=price;
 
+// СИГНАЛ AI - ТОЛЬКО ЗЕЛЁНЫЙ ТЕКСТ
 let score=0;
 if(price>ema9)score++;else score--;
 if(price>ema21)score++;else score--;
@@ -120,25 +120,36 @@ if(rsi<30)score++;if(rsi>70)score--;
 let pct=Math.abs(score)/3*100;
 
 let verdict=document.getElementById('verdict');
+let percent=document.getElementById('percent');
+
 if(score>=2){
-verdict.innerHTML=`<div style="font-size:32px;text-align:center" class="up">ВВЕРХ ${pct.toFixed(0)}%</div><div style="text-align:center" class="small">Можно покупать</div>`;
+verdict.innerHTML='ВВЕРХ';
+percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 if(lastDir!=='up'){beep();lastDir='up';}
 }else if(score<=-2){
-verdict.innerHTML=`<div style="font-size:32px;text-align:center" class="down">ВНИЗ ${pct.toFixed(0)}%</div><div style="text-align:center" class="small">Можно продавать</div>`;
+verdict.innerHTML='ВНИЗ';
+percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 if(lastDir!=='down'){beep();lastDir='down';}
 }else{
-verdict.innerHTML=`<div style="font-size:24px;text-align:center" class="wait">ФЛЭТ ${pct.toFixed(0)}%</div><div style="text-align:center" class="small">Ждем сигнал</div>`;
+verdict.innerHTML='ФЛЭТ';
+percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 lastDir='wait';
 }
 
-document.getElementById('details').innerHTML=`<b>Данные:</b><br>Цена: $${price.toFixed(2)}<br>EMA9: $${ema9.toFixed(2)} ${price>ema9?'▲':'▼'}<br>EMA21: $${ema21.toFixed(2)} ${price>ema21?'▲':'▼'}<br>RSI14: ${rsi.toFixed(1)}<br><br>Score: ${score}/3`;
+// ДЕТАЛИ - ВСЁ ЗЕЛЁНОЕ
+document.getElementById('details').innerHTML=`<b>Данные индикаторов:</b><br>
+Цена: $${price.toFixed(2)}<br>
+EMA9: $${ema9.toFixed(2)} ${price>ema9?'▲':'▼'}<br>
+EMA21: $${ema21.toFixed(2)} ${price>ema21?'▲':'▼'}<br>
+RSI14: ${rsi.toFixed(1)}<br><br>
+Score: ${score}/3`;
 
 }catch(e){document.getElementById('details').innerHTML='Ошибка сети: '+e}
 }
 
 function EMA(arr,p){let k=2/(p+1),ema=arr[0];for(let i=1;i<arr.length;i++)ema=arr[i]*k+ema*(1-k);return ema}
 function RSI(arr,p){let g=0,l=0;for(let i=1;i<=p;i++){let ch=arr[i]-arr[i-1];if(ch>0)g+=ch;else l-=ch}let rs=g/p/(l/p||0.001);return 100-100/(1+rs)}
-function beep(){let a=new AudioContext();let o=a.createOscillator();o.frequency.value=900;o.connect(a.destination);o.start();o.stop(a.currentTime+0.3)}
+function beep(){try{let a=new AudioContext();let o=a.createOscillator();o.frequency.value=800;o.connect(a.destination);o.start();o.stop(a.currentTime+0.2);}catch(e){}}
 
 if(key){
 scan();
