@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD v5.2</title>
+<title>XAUUSD v5.3</title>
 <style>
 body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0}
-.box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px;background:#000}
-.price{font-size:46px;font-weight:bold;text-align:center;color:#0f0;text-shadow:0 0 15px #0f0}
-.verdict{font-size:32px;text-align:center;font-weight:bold;color:#0f0}
-button{background:#0f0;color:#000;border:0;padding:14px;width:100%;font-weight:bold;border-radius:6px;font-size:17px;margin-top:8px}
+.box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px}
+.price{font-size:48px;font-weight:bold;text-align:center;color:#0f0;text-shadow:0 0 20px #0f0}
+.verdict{font-size:34px;text-align:center;font-weight:bold}
+button{background:#0f0;color:#000;border:0;padding:14px;width:100%;font-weight:bold;border-radius:6px;font-size:17px}
 input{background:#000;color:#0f0;border:2px solid #0f0;padding:10px;width:100%;border-radius:5px;font-size:16px}
 .small{font-size:12px;color:#0f0;opacity:0.7;text-align:center}
-h2{text-align:center;text-shadow:0 0 10px #0f0}
+h2{text-align:center;text-shadow:0 0 12px #0f0}
 </style></head><body>
-<h2>🪙 XAUUSD AI v5.2 MATRIX</h2>
+<h2>🪙 XAUUSD AI v5.3 MATRIX</h2>
 
 <div class="box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
 <div class="price" id="price">---.--</div>
-<div style="text-align:center;font-size:16px" id="dir">Загрузка...</div>
+<div style="text-align:center;font-size:17px" id="dir">Загрузка...</div>
 </div>
 
 <div class="box">
@@ -25,8 +25,8 @@ h2{text-align:center;text-shadow:0 0 10px #0f0}
 </div>
 
 <div class="box">
-API Key TwelveData:<br>
-<input id="key" type="password" placeholder="Вставь новый ключ"><br>
+API Key:<br>
+<input id="key" type="password" placeholder="TwelveData ключ"><br>
 <button onclick="save()">Сохранить & Сканировать</button>
 <div class="small" id="timer">Авто: 60 сек</div>
 </div>
@@ -35,6 +35,7 @@ API Key TwelveData:<br>
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
 let lastPrice=0;
+const MULT=6.70; // Множитель для TwelveData
 
 function save(){
 key=document.getElementById('key').value.trim();
@@ -50,10 +51,7 @@ let r=await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interva
 let d=await r.json();
 if(d.status==='error'){document.getElementById('dir').innerText='Ошибка: '+d.message;return;}
 
-let price=parseFloat(d.values[0].close);
-// ФИКС TWELVEDATA: 415.66 → 2634.50
-price = price * 6.34;
-
+let price=parseFloat(d.values[0].close) * MULT;
 document.getElementById('price').innerText=price.toFixed(2);
 
 // Направление
@@ -63,21 +61,19 @@ else document.getElementById('dir').innerHTML='■ Флэт';
 lastPrice=price;
 
 // EMA сигнал
-let closes=d.values.map(x=>parseFloat(x.close)*6.34);
-if(closes.length>21){
-let ema9=EMA(closes,9);
-let ema21=EMA(closes,21);
-let diff=Math.abs(price-ema21)/price*100;
+let closes=d.values.map(x=>parseFloat(x.close)*MULT);
+let ema9=EMA(closes,9), ema21=EMA(closes,21);
+let strength=Math.min(95,60+Math.abs(price-ema21)/price*1000);
+
 if(price>ema9 && price>ema21){
 document.getElementById('verdict').innerText='ВВЕРХ';
-document.getElementById('percent').innerText='Сила: '+Math.min(95,70+diff).toFixed(0)+'%';
+document.getElementById('percent').innerText='Сила: '+strength.toFixed(0)+'%';
 }else if(price<ema9 && price<ema21){
 document.getElementById('verdict').innerText='ВНИЗ';
-document.getElementById('percent').innerText='Сила: '+Math.min(95,70+diff).toFixed(0)+'%';
+document.getElementById('percent').innerText='Сила: '+strength.toFixed(0)+'%';
 }else{
 document.getElementById('verdict').innerText='ФЛЭТ';
 document.getElementById('percent').innerText='Сила: 40%';
-}
 }
 
 document.getElementById('timer').innerText='Обновлено: '+new Date().toLocaleTimeString();
