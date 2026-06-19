@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v5.0 MATRIX PRO</title>
+<title>XAUUSD AI v5.1 TURBO</title>
 <style>
 body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0;font-size:14px}
 .box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px;background:#000}
@@ -14,19 +14,22 @@ input,select{background:#000;color:#0f0;border:2px solid #0f0;padding:8px;width:
 .percent{font-size:20px;text-align:center;color:#0f0;margin-top:5px}
 .timer{font-size:16px;color:#0f0;font-weight:bold;text-align:center}
 .tpsl{font-size:16px;text-align:center;color:#0f0;margin-top:8px;border-top:1px solid #0f0;padding-top:8px}
-.info{font-size:13px;color:#0f0;margin-top:5px}
+.info{font-size:13px;color:#0f0;margin-top:5px;text-align:center}
 .history{font-size:18px;text-align:center;margin-top:5px;letter-spacing:5px}
 .session{font-size:14px;text-align:center;color:#ff0;margin-top:5px;font-weight:bold}
+.spread{font-size:13px;text-align:center;color:#0ff;margin-top:3px}
 h2{text-align:center;color:#0f0;margin:8px 0}
+.up{color:#0f0}.down{color:#f00}
 </style></head><body>
-<h2>🪙 XAUUSD AI v5.0 MATRIX PRO</h2>
+<h2>🪙 XAUUSD AI v5.1 TURBO</h2>
 
 <div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
 <div class="price" id="price">---.--</div>
 <div class="dir" id="direction">Идет ВВЕРХ ▲</div>
 <div class="session" id="session">Сессия: --</div>
-<div class="small">Спред: ~0.30-0.50 $</div>
+<div class="spread" id="spread">Bid: --- | Ask: --- | Спред: ---</div>
+<div class="info" id="dayRange">24h: -- | High: -- | Low: --</div>
 </div>
 
 <div class="box">
@@ -87,8 +90,6 @@ if(signalHistory.length>5)signalHistory.pop();
 localStorage.setItem('sigHist',JSON.stringify(signalHistory));
 let hist=signalHistory.map(s=>s==='up'?'▲':s==='down'?'▼':'■').join(' ');
 document.getElementById('history').innerHTML=`История: ${hist}`;
-let wins=signalHistory.filter(s=>s==='up'||s==='down').length;
-document.getElementById('history').innerHTML+=`<br><span class="small">Сигналов: ${signalHistory.length}</span>`;
 }
 
 async function scan(){
@@ -100,16 +101,29 @@ let tp=parseInt(document.getElementById('tp').value);
 let sl=parseInt(document.getElementById('sl').value);
 
 try{
+// Основной запрос + спред
 let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${tf}&outputsize=20&apikey=${key}`;
 let r=await fetch(url);let d=await r.json();
 if(d.status==='error'){document.getElementById('details').innerHTML='Ошибка: '+d.message;return;}
+
 let raw=d.values.map(x=>parseFloat(x.close));
 let c=raw.map(p=>p/1.57);
 let price=c[0];
 let ema9=EMA(c,9), ema21=EMA(c,21), rsi=RSI(c,14), atr=ATR(d.values,14);
 
+// 24h данные
+let url24=`https://api.twelvedata.com/quote?symbol=XAU/USD&apikey=${key}`;
+let r24=await fetch(url24);let d24=await r24.json();
+let bid=d24.bid/1.57, ask=d24.ask/1.57, spread=ask-bid;
+let high24=d24.high/1.57, low24=d24.low/1.57, chg=d24.percent_change;
+
 document.getElementById('price').innerText=price.toFixed(2);
 document.getElementById('direction').innerHTML=price>lastPrice?'▲ Идет ВВЕРХ':price<lastPrice?'▼ Идет ВНИЗ':'■ Флэт';
+document.getElementById('spread').innerHTML=`Bid: ${bid.toFixed(2)} | Ask: ${ask.toFixed(2)} | Спред: ${spread.toFixed(2)}$ ${spread>1?'⚠️ Большой!':''}`;
+
+let chgClass=chg>=0?'up':'down';
+document.getElementById('dayRange').innerHTML=`24h: <span class="${chgClass}">${chg}%</span> | High: ${high24.toFixed(2)} | Low: ${low24.toFixed(2)}`;
+
 lastPrice=price;
 
 let score=0;
@@ -144,7 +158,8 @@ document.getElementById('details').innerHTML=`<b>Данные индикатор
 EMA9: $${ema9.toFixed(2)}<br>
 EMA21: $${ema21.toFixed(2)}<br>
 RSI14: ${rsi.toFixed(1)}<br>
-<b>ATR14: ${atr.toFixed(2)}$</b> - ${atr>2?'Высокая волатильность':'Нормальная'}<br><br>
+<b>ATR14: ${atr.toFixed(2)}$</b> - ${atr>2?'Высокая волатильность':'Нормальная'}<br>
+<b>До High: ${(high24-price).toFixed(2)}$ | До Low: ${(price-low24).toFixed(2)}$</b><br><br>
 Score: ${score}/3`;
 
 }catch(e){document.getElementById('details').innerHTML='Ошибка сети: '+e}
