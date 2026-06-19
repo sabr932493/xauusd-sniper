@@ -1,29 +1,39 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v5.2 ULTIMATE</title>
+<title>XAUUSD AI v5.4 GOLD</title>
 <style>
-body{background:#000;color:#0f0;font-family:monospace;padding:15px;margin:0;font-size:14px}
-.box{border:2px solid #0f0;padding:12px;margin:10px 0;border-radius:8px;background:#000}
-.price-box{border:3px solid #0f0;background:#001100;text-align:center}
-.price{font-size:42px;font-weight:bold;margin:5px 0;color:#0f0}
-.dir{font-size:18px;margin-top:5px;color:#0f0}
-button{background:#0f0;color:#000;border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;margin-top:8px;font-size:16px}
-input,select{background:#000;color:#0f0;border:2px solid #0f0;padding:8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
-.small{font-size:11px;color:#0f0;text-align:center;margin-top:5px;opacity:0.8}
-.verdict{font-size:32px;text-align:center;font-weight:bold;color:#0f0}
-.percent{font-size:20px;text-align:center;color:#0f0;margin-top:5px}
-.timer{font-size:16px;color:#0f0;font-weight:bold;text-align:center}
-.tpsl{font-size:16px;text-align:center;color:#0f0;margin-top:8px;border-top:1px solid #0f0;padding-top:8px}
-.info{font-size:13px;color:#0f0;margin-top:5px;text-align:center}
+:root{--bg:#000;--txt:#0f0;--box:#000;--btn:#0f0;--btntxt:#000}
+body.light{--bg:#f5f5f5;--txt:#005500;--box:#fff;--btn:#005500;--btntxt:#fff}
+body{background:var(--bg);color:var(--txt);font-family:monospace;padding:15px;margin:0;font-size:14px;transition:0.3s}
+.box{border:2px solid var(--txt);padding:12px;margin:10px 0;border-radius:8px;background:var(--box);transition:0.3s}
+.price-box{border:3px solid var(--txt);background:var(--bg);text-align:center}
+.price{font-size:42px;font-weight:bold;margin:5px 0;color:var(--txt)}
+.dir{font-size:18px;margin-top:5px;color:var(--txt)}
+button{background:var(--btn);color:var(--btntxt);border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;margin-top:8px;font-size:16px;cursor:pointer}
+button:hover{opacity:0.8}
+input,select{background:var(--bg);color:var(--txt);border:2px solid var(--txt);padding:8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
+.small{font-size:11px;color:var(--txt);text-align:center;margin-top:5px;opacity:0.8}
+.verdict{font-size:32px;text-align:center;font-weight:bold;color:var(--txt)}
+.percent{font-size:20px;text-align:center;color:var(--txt);margin-top:5px}
+.timer{font-size:16px;color:var(--txt);font-weight:bold;text-align:center}
+.tpsl{font-size:16px;text-align:center;color:var(--txt);margin-top:8px;border-top:1px solid var(--txt);padding-top:8px}
+.info{font-size:13px;color:var(--txt);margin-top:5px;text-align:center}
 .history{font-size:18px;text-align:center;margin-top:5px;letter-spacing:5px}
 .session{font-size:14px;text-align:center;color:#ff0;margin-top:5px;font-weight:bold}
 .spread{font-size:13px;text-align:center;color:#0ff;margin-top:3px}
 .news{font-size:14px;text-align:center;color:#f00;margin-top:5px;font-weight:bold;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:0.3}}
-h2{text-align:center;color:#0f0;margin:8px 0}
+h2{text-align:center;color:var(--txt);margin:8px 0}
 .up{color:#0f0}.down{color:#f00}
+.topbar{display:flex;gap:5px;margin-bottom:10px}
+.topbar button{width:48%}
 </style></head><body>
-<h2>🪙 XAUUSD AI v5.2 ULTIMATE</h2>
+<div class="topbar">
+<button onclick="toggleTheme()">🌓 Тема</button>
+<button onclick="exportCSV()">📊 Экспорт CSV</button>
+</div>
+
+<h2>🪙 XAUUSD AI v5.4 GOLD</h2>
 
 <div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
@@ -50,16 +60,37 @@ SL: <input id="sl" type="number" value="30"> пунктов<br>
 API Key: <input id="key" type="password" placeholder="TWELVE DATA"><br>
 <button onclick="save()">Сохранить & Тест</button>
 <button onclick="scan()">Сканировать</button>
-<div class="timer" id="timer">Автообновление: 60 сек</div>
+<div class="timer" id="timer">Автообновление: 30 сек</div>
 </div>
 
 <div class="box" id="details">Загрузка...</div>
 
 <script>
-let lastDir='', lastPrice=0, countdown=60, timerInterval;
+let lastDir='', lastPrice=0, countdown=30, timerInterval;
 let signalHistory = JSON.parse(localStorage.getItem('sigHist')||'[]');
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
+
+// Загружаем тему
+if(localStorage.getItem('theme')==='light')document.body.classList.add('light');
+
+function toggleTheme(){
+document.body.classList.toggle('light');
+localStorage.setItem('theme',document.body.classList.contains('light')?'light':'dark');
+beep('test');
+}
+
+function exportCSV(){
+let csv='Время,Сигнал,Цена,EMA9,EMA21,RSI,ATR\n';
+let data=JSON.parse(localStorage.getItem('lastData')||'[]');
+data.forEach(r=>{csv+=r.time+','+r.sig+','+r.price+','+r.ema9+','+r.ema21+','+r.rsi+','+r.atr+'\n'});
+let blob=new Blob([csv],{type:'text/csv'});
+let a=document.createElement('a');
+a.href=URL.createObjectURL(blob);
+a.download='XAUUSD_history_'+new Date().toISOString().slice(0,10)+'.csv';
+a.click();
+beep('test');
+}
 
 function save(){
 key=document.getElementById('key').value.trim();
@@ -70,12 +101,12 @@ scan();startTimer();
 }
 
 function startTimer(){
-countdown=60;
+countdown=30;
 clearInterval(timerInterval);
 timerInterval=setInterval(()=>{
 countdown--;
 document.getElementById('timer').innerHTML=`Автообновление: ${countdown} сек`;
-if(countdown<=0){countdown=60;scan();}
+if(countdown<=0){countdown=30;scan();}
 },1000);
 }
 
@@ -90,19 +121,24 @@ return 'СИДНЕЙ 🌙 Спокойная';
 function checkNews(){
 let h=new Date().getUTCHours();
 let m=new Date().getUTCMinutes();
-// NFP обычно 1-я пятница 13:30 UTC, CPI 15:30 UTC
 if(h==13&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ NFP ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return true;}
 if(h==15&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ CPI ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return true;}
 document.getElementById('news').innerHTML='';
 return false;
 }
 
-function addHistory(sig){
+function addHistory(sig,price,ema9,ema21,rsi,atr){
 signalHistory.unshift(sig);
 if(signalHistory.length>5)signalHistory.pop();
 localStorage.setItem('sigHist',JSON.stringify(signalHistory));
 let hist=signalHistory.map(s=>s==='up'?'▲':s==='down'?'▼':'■').join(' ');
 document.getElementById('history').innerHTML=`История: ${hist}`;
+
+// Сохраняем для CSV
+let data=JSON.parse(localStorage.getItem('lastData')||'[]');
+data.unshift({time:new Date().toLocaleTimeString(),sig:sig,price:price.toFixed(2),ema9:ema9.toFixed(2),ema21:ema21.toFixed(2),rsi:rsi.toFixed(1),atr:atr.toFixed(2)});
+if(data.length>50)data.pop();
+localStorage.setItem('lastData',JSON.stringify(data));
 }
 
 async function scan(){
@@ -152,17 +188,17 @@ if(score>=2){
 verdict.innerHTML='ВВЕРХ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price+tp/100).toFixed(2)} | SL: ${(price-sl/100).toFixed(2)}`;
-if(lastDir!=='up'){beep('up');lastDir='up';addHistory('up');}
+if(lastDir!=='up'){beep('up');lastDir='up';addHistory('up',price,ema9,ema21,rsi,atr);}
 }else if(score<=-2){
 verdict.innerHTML='ВНИЗ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price-tp/100).toFixed(2)} | SL: ${(price+sl/100).toFixed(2)}`;
-if(lastDir!=='down'){beep('down');lastDir='down';addHistory('down');}
+if(lastDir!=='down'){beep('down');lastDir='down';addHistory('down',price,ema9,ema21,rsi,atr);}
 }else{
 verdict.innerHTML='ФЛЭТ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML='';
-lastDir='wait';addHistory('wait');
+lastDir='wait';addHistory('wait',price,ema9,ema21,rsi,atr);
 }
 
 document.getElementById('details').innerHTML=`<b>Данные индикаторов:</b><br>
@@ -190,5 +226,5 @@ catch(e){}}
 
 if(key){scan();startTimer();}
 document.getElementById('tf').onchange=()=>{scan();startTimer();};
-addHistory('wait');
+addHistory('wait',0,0,0,0,0);
 </script></body></html>
