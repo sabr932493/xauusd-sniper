@@ -1,22 +1,45 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ТЕСТ XAUUSD</title>
-<style>body{background:#000;color:#0f0;font-family:monospace;padding:15px}</style></head><body>
-<h2>ТЕСТ API</h2>
-<div id="out">Жму тест...</div>
-API: <input id="key" placeholder="Вставь ключ"><br><br>
-<button onclick="test()">ПРОВЕРИТЬ API</button>
+<title>XAUUSD AI v4.9</title>
+<style>body{background:#000;color:#0f0;font-family:monospace;padding:12px;margin:0;font-size:13px}
+.box{border:2px solid #0f0;padding:10px;margin:8px 0;border-radius:6px;background:#000}
+.price{font-size:38px;font-weight:bold;text-align:center;color:#0f0}
+button{background:#0f0;color:#000;border:0;padding:10px;width:100%;font-weight:bold;border-radius:5px;margin-top:6px}
+input{background:#000;color:#0f0;border:2px solid #0f0;padding:7px;width:100%;border-radius:5px;margin-top:4px}</style></head><body>
+<h2 style="text-align:center;color:#0f0">🪙 XAUUSD AI v4.9</h2>
+
+<div class="box">
+<div class="price" id="price">---.--</div>
+<div style="text-align:center" id="dir">Загрузка...</div>
+</div>
+
+<div class="box">
+API Key: <input id="key" type="password" placeholder="TwelveData ключ"><br>
+<button onclick="save()">Сохранить & Сканировать</button>
+<div style="text-align:center;margin-top:5px" id="timer">Авто: 60 сек</div>
+</div>
 
 <script>
-function test(){
-let k=document.getElementById('key').value.trim();
-document.getElementById('out').innerHTML='Запрос...';
-fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=5&apikey=${k}&format=JSON`)
-.then(r=>r.json())
-.then(d=>{
-if(d.status==='error') document.getElementById('out').innerHTML='❌ Ошибка: '+d.message;
-else document.getElementById('out').innerHTML='✅ РАБОТАЕТ! Цена: '+d.values[0].close;
-})
-.catch(e=>document.getElementById('out').innerHTML='❌ Сеть: '+e.message);
+let key=localStorage.getItem('td_key')||'';
+document.getElementById('key').value=key;
+
+function save(){
+key=document.getElementById('key').value.trim();
+localStorage.setItem('td_key',key);
+scan();
+setInterval(scan,60000);
 }
+
+async function scan(){
+if(!key)return;
+try{
+let r=await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=50&apikey=${key}&format=JSON`);
+let d=await r.json();
+if(d.status==='error'){document.getElementById('dir').innerText='Ошибка: '+d.message;return;}
+let price=parseFloat(d.values[0].close);
+if(price>10000) price=price/100; // Фикс центов
+document.getElementById('price').innerText=price.toFixed(2);
+document.getElementById('dir').innerText='Цена обновлена: '+new Date().toLocaleTimeString();
+}catch(e){document.getElementById('dir').innerText='Сеть: '+e.message}
+if(key)scan();
 </script></body></html>
