@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI v5.4 GOLD</title>
+<title>XAUUSD AI v5.5 MARKET STATE</title>
 <style>
 :root{--bg:#000;--txt:#0f0;--box:#000;--btn:#0f0;--btntxt:#000}
 body.light{--bg:#f5f5f5;--txt:#005500;--box:#fff;--btn:#005500;--btntxt:#fff}
@@ -9,6 +9,10 @@ body{background:var(--bg);color:var(--txt);font-family:monospace;padding:15px;ma
 .price-box{border:3px solid var(--txt);background:var(--bg);text-align:center}
 .price{font-size:42px;font-weight:bold;margin:5px 0;color:var(--txt)}
 .dir{font-size:18px;margin-top:5px;color:var(--txt)}
+.state{font-size:20px;text-align:center;font-weight:bold;margin-top:8px;padding:8px;border-radius:5px}
+.state.trend{background:#003300;color:#0f0}
+.state.flat{background:#333300;color:#ff0}
+.state.news{background:#330000;color:#f00}
 button{background:var(--btn);color:var(--btntxt);border:0;padding:12px;width:100%;font-weight:bold;border-radius:5px;margin-top:8px;font-size:16px;cursor:pointer}
 button:hover{opacity:0.8}
 input,select{background:var(--bg);color:var(--txt);border:2px solid var(--txt);padding:8px;width:100%;border-radius:5px;margin-top:5px;font-size:16px}
@@ -33,13 +37,14 @@ h2{text-align:center;color:var(--txt);margin:8px 0}
 <button onclick="exportCSV()">📊 Экспорт CSV</button>
 </div>
 
-<h2>🪙 XAUUSD AI v5.4 GOLD</h2>
+<h2>🪙 XAUUSD AI v5.5 MARKET STATE</h2>
 
 <div class="box price-box">
 <div class="small">РЫНОЧНАЯ ЦЕНА XAUUSD</div>
 <div class="price" id="price">---.--</div>
 <div class="dir" id="direction">Идет ВВЕРХ ▲</div>
 <div class="session" id="session">Сессия: --</div>
+<div class="state" id="marketState">СОСТОЯНИЕ: Загрузка...</div>
 <div class="news" id="news"></div>
 <div class="spread" id="spread">Bid: --- | Ask: --- | Спред: ---</div>
 <div class="info" id="dayRange">24h: -- | High: -- | Low: --</div>
@@ -71,7 +76,6 @@ let signalHistory = JSON.parse(localStorage.getItem('sigHist')||'[]');
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
 
-// Загружаем тему
 if(localStorage.getItem('theme')==='light')document.body.classList.add('light');
 
 function toggleTheme(){
@@ -81,9 +85,9 @@ beep('test');
 }
 
 function exportCSV(){
-let csv='Время,Сигнал,Цена,EMA9,EMA21,RSI,ATR\n';
+let csv='Время,Сигнал,Цена,EMA9,EMA21,RSI,ATR,Состояние\n';
 let data=JSON.parse(localStorage.getItem('lastData')||'[]');
-data.forEach(r=>{csv+=r.time+','+r.sig+','+r.price+','+r.ema9+','+r.ema21+','+r.rsi+','+r.atr+'\n'});
+data.forEach(r=>{csv+=r.time+','+r.sig+','+r.price+','+r.ema9+','+r.ema21+','+r.rsi+','+r.atr+','+r.state+'\n'});
 let blob=new Blob([csv],{type:'text/csv'});
 let a=document.createElement('a');
 a.href=URL.createObjectURL(blob);
@@ -121,22 +125,83 @@ return 'СИДНЕЙ 🌙 Спокойная';
 function checkNews(){
 let h=new Date().getUTCHours();
 let m=new Date().getUTCMinutes();
-if(h==13&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ NFP ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return true;}
-if(h==15&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ CPI ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return true;}
+if(h==13&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ NFP ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return 'NEWS';}
+if(h==15&&m>=20&&m<=40){document.getElementById('news').innerHTML='⚠️ CPI ЧЕРЕЗ 10М! ТОРГОВЛЯ ОПАСНА!';beep('news');return 'NEWS';}
 document.getElementById('news').innerHTML='';
-return false;
+return 'OK';
 }
 
-function addHistory(sig,price,ema9,ema21,rsi,atr){
+function getMarketState(price,ema9,ema21,rsi,atr,spread,newsState){
+let stateBox=document.getElementById('marketState');
+let state='',className='';
+
+// 1. Новости - главный приоритет
+if(newsState==='NEWS'){
+state='НОВОСТИ - СТОП ТОРГОВЛЯ 🛑';
+className='news';
+return {state,className,canTrade:false};
+}
+
+// 2. Спред большой
+if(spread>1.5){
+state='СПРЕД БОЛЬШОЙ ⚠️ Риск высокий';
+className='flat';
+return {state,className,canTrade:false};
+}
+
+// 3. Флэт/Консолидация
+let emaDiff=Math.abs(ema9-ema21);
+if(emaDiff<0.5 && rsi>45 && rsi<55){
+state='ФЛЭТ/КОНСОЛИДАЦИЯ ■ Сиди на заборе';
+className='flat';
+return {state,className,canTrade:false};
+}
+
+// 4. Тренд
+if(price>ema9 && price>ema21 && ema9>ema21){
+state='ТРЕНД ВВЕРХ 🔥 Идеально для BUY';
+className='trend';
+return {state,className,canTrade:true};
+}
+if(price<ema9 && price<ema21 && ema9<ema21){
+state='ТРЕНД ВНИЗ 🔥 Идеально для SELL';
+className='trend';
+return {state,className,canTrade:true};
+}
+
+// 5. Высокая волатильность
+if(atr>3){
+state='ВЫСОКАЯ ВОЛАТИЛЬНОСТЬ ⚡ Осторожно!';
+className='trend';
+return {state,className,canTrade:true};
+}
+
+// 6. Перекуп/Перепродан
+if(rsi>70){
+state='ПЕРЕКУП 📉 Скоро разворот вниз';
+className='flat';
+return {state,className,canTrade:true};
+}
+if(rsi<30){
+state='ПЕРЕПРОДАН 📈 Скоро разворот вверх';
+className='flat';
+return {state,className,canTrade:true};
+}
+
+state='БОКОВИК ■ Ждём сигнал';
+className='flat';
+return {state,className,canTrade:false};
+}
+
+function addHistory(sig,price,ema9,ema21,rsi,atr,state){
 signalHistory.unshift(sig);
 if(signalHistory.length>5)signalHistory.pop();
 localStorage.setItem('sigHist',JSON.stringify(signalHistory));
 let hist=signalHistory.map(s=>s==='up'?'▲':s==='down'?'▼':'■').join(' ');
 document.getElementById('history').innerHTML=`История: ${hist}`;
 
-// Сохраняем для CSV
 let data=JSON.parse(localStorage.getItem('lastData')||'[]');
-data.unshift({time:new Date().toLocaleTimeString(),sig:sig,price:price.toFixed(2),ema9:ema9.toFixed(2),ema21:ema21.toFixed(2),rsi:rsi.toFixed(1),atr:atr.toFixed(2)});
+data.unshift({time:new Date().toLocaleTimeString(),sig:sig,price:price.toFixed(2),ema9:ema9.toFixed(2),ema21:ema21.toFixed(2),rsi:rsi.toFixed(1),atr:atr.toFixed(2),state:state});
 if(data.length>50)data.pop();
 localStorage.setItem('lastData',JSON.stringify(data));
 }
@@ -144,7 +209,7 @@ localStorage.setItem('lastData',JSON.stringify(data));
 async function scan(){
 document.getElementById('details').innerHTML='Сканирую...';
 document.getElementById('session').innerHTML=`Сессия: ${getSession()}`;
-checkNews();
+let newsState=checkNews();
 if(!key){alert('Вставь API ключ!');return;}
 let tf=document.getElementById('tf').value;
 let tp=parseInt(document.getElementById('tp').value);
@@ -174,6 +239,12 @@ document.getElementById('dayRange').innerHTML=`24h: <span class="${chgClass}">${
 
 lastPrice=price;
 
+// Определяем рыночное состояние
+let market=getMarketState(price,ema9,ema21,rsi,atr,spread,newsState);
+let stateBox=document.getElementById('marketState');
+stateBox.innerHTML='СОСТОЯНИЕ: '+market.state;
+stateBox.className='state '+market.className;
+
 let score=0;
 if(price>ema9)score++;else score--;
 if(price>ema21)score++;else score--;
@@ -184,21 +255,27 @@ let verdict=document.getElementById('verdict');
 let percent=document.getElementById('percent');
 let tpsl=document.getElementById('tpsl');
 
-if(score>=2){
+// Блокируем сигнал если нельзя торговать
+if(!market.canTrade && score>=2 ||!market.canTrade && score<=-2){
+verdict.innerHTML='ФЛЭТ';
+percent.innerHTML='Сила: 0%';
+tpsl.innerHTML='ТОРГОВЛЯ ЗАПРЕЩЕНА';
+lastDir='wait';addHistory('wait',price,ema9,ema21,rsi,atr,market.state);
+}else if(score>=2){
 verdict.innerHTML='ВВЕРХ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price+tp/100).toFixed(2)} | SL: ${(price-sl/100).toFixed(2)}`;
-if(lastDir!=='up'){beep('up');lastDir='up';addHistory('up',price,ema9,ema21,rsi,atr);}
+if(lastDir!=='up'){beep('up');lastDir='up';addHistory('up',price,ema9,ema21,rsi,atr,market.state);}
 }else if(score<=-2){
 verdict.innerHTML='ВНИЗ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML=`TP: ${(price-tp/100).toFixed(2)} | SL: ${(price+sl/100).toFixed(2)}`;
-if(lastDir!=='down'){beep('down');lastDir='down';addHistory('down',price,ema9,ema21,rsi,atr);}
+if(lastDir!=='down'){beep('down');lastDir='down';addHistory('down',price,ema9,ema21,rsi,atr,market.state);}
 }else{
 verdict.innerHTML='ФЛЭТ';
 percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
 tpsl.innerHTML='';
-lastDir='wait';addHistory('wait',price,ema9,ema21,rsi,atr);
+lastDir='wait';addHistory('wait',price,ema9,ema21,rsi,atr,market.state);
 }
 
 document.getElementById('details').innerHTML=`<b>Данные индикаторов:</b><br>
@@ -226,5 +303,5 @@ catch(e){}}
 
 if(key){scan();startTimer();}
 document.getElementById('tf').onchange=()=>{scan();startTimer();};
-addHistory('wait',0,0,0,0,0);
+addHistory('wait',0,0,0,0,0,'Загрузка');
 </script></body></html>
