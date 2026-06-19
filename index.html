@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>">
+<title>XAUUSD AI</title>
+<style>
+body{background:#0a0a0a;color:#0f0;font-family:monospace;padding:10px;font-size:14px;margin:0}
+.box{border:1px solid #0f0;margin:8px 0;padding:12px;border-radius:10px}
+.up{color:#0f0}.down{color:#f00}.wait{color:#888}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center}
+input{background:#111;border:1px solid #0f0;color:#0f0;padding:6px;width:100%;border-radius:5px}
+button{background:#0f0;color:#000;border:none;padding:8px 15px;border-radius:5px;margin-top:5px;font-weight:bold}
+</style>
+</head>
+<body>
+<h2>🪙 XAUUSD AI Sniper</h2>
+
+<div class="box">
+<label>TwelveData API Key:</label>
+<input id="api" type="text" placeholder="Вставь ключ сюда">
+<button onclick="saveKey()">Сохранить</button>
+</div>
+
+<div id="price" class="box">Вставь API ключ выше...</div>
+
+<div id="vote" class="box" style="display:none">
+<h3>Голосование индикаторов:</h3>
+<div class="grid">
+<div class="up">Купить: <span id="buy">0</span></div>
+<div class="down">Продать: <span id="sell">0</span></div>
+<div class="wait">Молчит: <span id="wait">0</span></div>
+</div>
+<h3 id="verdict">Вердикт: Ждем...</h3>
+</div>
+
+<div id="indicators" class="box" style="display:none"></div>
+
+<script>
+function saveKey() {
+    localStorage.setItem('td_key', document.getElementById('api').value);
+    location.reload();
+}
+
+let API_KEY = localStorage.getItem('td_key');
+if(API_KEY) {
+    document.querySelector('.box').style.display = 'none';
+    scan();
+    setInterval(scan, 60000);
+}
+
+async function scan() {
+    if(!API_KEY) return;
+
+    try {
+        let pRes = await fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${API_KEY}`);
+        let price = parseFloat((await pRes.json()).price);
+        document.getElementById('price').innerHTML = `Цена: $${price}<br><span class="wait">Обновление каждую минуту</span>`;
+
+        let data = await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=30min&outputsize=200&apikey=${API_KEY}`);
+        let closes = (await data.json()).values.map(c => parseFloat(c.close));
+
+        let buy=0, sell=0, wait=0;
+        let indHtml = '<h3>Каждый индикатор:</h3>';
+
+        let ema9 = calcEMA(closes, 9);
+        let v1 = vote(price, ema9, 'EMA9'); indHtml += v1.text; count(v1.vote);
+
+        let ema21 = calcEMA(closes, 21);
+        let v2 = vote(price, ema21, 'EMA21'); indHtml += v2.text; count(v2.vote);
+
+        let sma50 = avg(closes.slice(0,50));
+        let v3 = vote(price, sma50, 'SMA50'); indHtml += v3.text; count(v3.vote);
+
+        let sma200 = avg(closes.slice(0,200));
+        let v4 = vote(price, sma200, 'SMA200'); indHtml += v4.text; count(v4.vote);
+
+        let rsi = calcRSI(closes);
+        let v5 = rsi<30?{vote:'BUY',text:`<div class="up">RSI: BUY ${rsi.toFixed(1)} 🟢</div>`}:
+                       rsi>70?{vote:'SELL',text:`<div class="down">RSI: SELL ${rsi.toFixed(1)} 🔴</div>`}:
+                       {vote:'WAIT',text:`<div class="wait">RSI: WAIT ${rsi.toFixed(1)} ⚪</div>`};
+        indHtml += v5.text; count(v5.vote);
+
+        let macd = calcMACD(closes);
+        let v6 = macd>0?{vote:'BUY',text:`<div class="up">MACD: BUY ${macd.toFixed(2)} 🟢</div>`}:
+                       macd<0?{vote:'SELL',text:`<div class="down">MACD: SELL ${macd.toFixed(2)} 🔴</div>`}:
+                       {vote:'WAIT',text:`<div class="wait">MACD: WAIT ⚪</div>`};
+        indHtml += v6.text; count(v6.vote);
+
+        let bb = calcBollinger(closes);
+        let v7 = price<bb.lower?{vote:'BUY',text:`<div class="up">BB: BUY у нижней 🟢</div>`}:
+                  price>bb.upper?{vote:'SELL',text:`<div class="down">BB: SELL у верхней 🔴</div>`}:
+                  {vote:'WAIT',text:`<div class="wait">BB: WAIT внутри ⚪</div>`};
+        indHtml += v7.text; count(v7.vote);
+
+        function count(v){if(v=='BUY')buy++; if(v=='SELL')sell++; if(v=='WAIT')wait++}
+
+        document.getElementById('buy').innerText = buy;
+        document.getElementById('sell').innerText = sell;
+        document.getElementById('wait').innerText = wait;
+
+        let total = buy+sell+wait;
+        let prob = Math.max(buy,sell)/total*100;
+        let verdict = prob >= 65? `🎯 ${buy>sell?'ВВЕРХ':'ВНИЗ'} ${prob.toFixed(0)}%` : `WAIT ${prob.toFixed(0)}%`;
+        document.getElementById('verdict').innerText = 'Вердикт: ' + verdict;
+        document.getElementById('verdict').className = prob>=65?(buy>sell?'up':'down'):'wait';
+
+        document.getElementById('vote').style.display = 'block';
+        document.getElementById('indicators').style.display = 'block';
+        document.getElementById('indicators').innerHTML = indHtml;
+
+    } catch(e) {
+        document.getElementById('price').innerHTML = 'Ошибка API ключа. Проверь ключ.';
+    }
+}
+
+function vote(price, ma, name) {
+    if(price > ma*1.001) return {vote:'BUY', text:`<div class="up">${name}: BUY выше 🟢</div>`};
+    if(price < ma*0.999) return {vote:'SELL', text:`<div class="down">${name}: SELL ниже 🔴</div>`};
+    return {vote:'WAIT', text:`<div class="wait">${name}: WAIT у MA ⚪</div>`};
+}
+
+function calcEMA(p, per) {let k=2/(per+1), ema=p[0]; for(let i=1;i<p.length;i++) ema = p[i]*k + ema*(1-k); return ema;}
+function calcRSI(p, per=14) {let g=0,l=0; for(let i=1;i<per;i++){let d=p[i-1]-p[i]; if(d>0)g+=d; else l-=d;} return l==0?100:100 - 100/(1+g/l);}
+function calcMACD(p) {return calcEMA(p,12) - calcEMA(p,26);}
+function calcBollinger(p) {let sma = avg(p.slice(0,20)); let std = Math.sqrt(p.slice(0,20).reduce((a,b)=>a+(b-sma)**2,0)/20); return {upper: sma+std*2, lower: sma-std*2};}
+function avg(arr) {return arr.reduce((a,b)=>a+b)/arr.length}
+</script>
+</body>
+</html>
