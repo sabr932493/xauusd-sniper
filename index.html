@@ -2,12 +2,16 @@
 let momentum = c[0] - c[1]; // разница с прошлой свечой = 5 минут
 let score = 0;
 
-// 1. Моментум главный - +1$ уже сигнал
-if(momentum > 1) score = 3; // +1$ за 5 мин = BUY
-else if(momentum < -1) score = -3; // -1$ за 5 мин = SELL
-else score = 0; // флэт
+// Моментум главный - +1$ уже сигнал
+if(momentum > 1) {
+    score = 3; // +1$ за 5 мин = BUY
+} else if(momentum < -1) {
+    score = -3; // -1$ за 5 мин = SELL
+} else {
+    score = 0; // флэт
+}
 
-// 2. RSI только для цвета силы
+// RSI только для силы
 let pct = Math.abs(momentum) * 20; // 1$ = 20% силы
 if(pct > 95) pct = 95;
 
@@ -16,21 +20,21 @@ let percent = document.getElementById('percent');
 let tpsl = document.getElementById('tpsl');
 
 if(score == 3){
-verdict.innerHTML = '🟢 BUY';
-percent.innerHTML = `Импульс: +${momentum.toFixed(2)}$ | Сила: ${pct.toFixed(0)}%`;
-tpsl.innerHTML = `TP: ${(price+tp/100).toFixed(2)}$ | SL: ${(price-sl/100).toFixed(2)}$`;
-document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: СИГНАЛ BUY ⚡';
-verdict.style.color = '#0f0';
-}else if(score == -3){
-verdict.innerHTML = '🔴 SELL';
-percent.innerHTML = `Импульс: ${momentum.toFixed(2)}$ | Сила: ${pct.toFixed(0)}%`;
-tpsl.innerHTML = `TP: ${(price-tp/100).toFixed(2)}$ | SL: ${(price+sl/100).toFixed(2)}$`;
-document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: СИГНАЛ SELL ⚡';
-verdict.style.color = '#f00';
-}else{
-verdict.innerHTML = '■ FLAT';
-percent.innerHTML = `Импульс: ${momentum.toFixed(2)}$ | Сила: 0%`;
-tpsl.innerHTML = 'Нет движения...';
-document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: ФЛЭТ';
-verdict.style.color = '#ff0';
+    verdict.innerHTML = '🟢 BUY';
+    percent.innerHTML = `Импульс: +${momentum.toFixed(2)}$ | Сила: ${pct.toFixed(0)}%`;
+    tpsl.innerHTML = `TP: ${(price+tp/100).toFixed(2)}$ | SL: ${(price-sl/100).toFixed(2)}$`;
+    document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: СИГНАЛ BUY ⚡';
+    verdict.style.color = '#0f0';
+} else if(score == -3){
+    verdict.innerHTML = '🔴 SELL';
+    percent.innerHTML = `Импульс: ${momentum.toFixed(2)}$ | Сила: ${pct.toFixed(0)}%`;
+    tpsl.innerHTML = `TP: ${(price-tp/100).toFixed(2)}$ | SL: ${(price+sl/100).toFixed(2)}$`;
+    document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: СИГНАЛ SELL ⚡';
+    verdict.style.color = '#f00';
+} else {
+    verdict.innerHTML = '■ FLAT';
+    percent.innerHTML = `Импульс: ${momentum.toFixed(2)}$ | Сила: 0%`;
+    tpsl.innerHTML = 'Нет движения...';
+    document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: ФЛЭТ';
+    verdict.style.color = '#ff0';
 }
