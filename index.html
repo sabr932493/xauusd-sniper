@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD AI PULSE</title>
+<title>XAUUSD PULSE 0.1</title>
 <style>
 body{background:#000;color:#0f0;font-family:monospace;padding:20px;margin:0;text-align:center}
 .box{border:3px solid #0f0;padding:30px;margin:20px 0;border-radius:15px}
 .signal{font-size:80px;font-weight:bold;margin:20px 0;min-height:100px}
 .info{font-size:18px;margin:10px 0}
+.price{font-size:32px;font-weight:bold;color:#0f0;margin:15px 0}
 input{padding:12px;width:280px;background:#111;color:#0f0;border:2px solid #0f0;border-radius:8px;font-size:16px}
 button{padding:15px 40px;background:#0f0;color:#000;border:0;border-radius:8px;font-weight:bold;font-size:18px;margin:10px;cursor:pointer}
 .error{color:#f00;margin-top:15px;font-size:14px}
 .small{color:#888;font-size:12px;margin-top:10px}
 </style></head><body>
 
-<h1>⚡ XAUUSD PULSE</h1>
+<h1>⚡ XAUUSD PULSE 0.1</h1>
 
 <div class="box">
 <div class="signal" id="signal">Жду ключ...</div>
 <div class="info" id="info"></div>
-<div class="info" id="price"></div>
+<div class="price" id="price"></div>
 <div class="error" id="error"></div>
 </div>
 
@@ -30,7 +31,7 @@ API Key TwelveData: <input id="key" type="text" placeholder="Вставь клю
 <script>
 let key=localStorage.getItem('td_key')||'';
 document.getElementById('key').value=key;
-let lastPrice=0;
+let countdown=5;
 
 async function scan(){
 key=document.getElementById('key').value.trim();
@@ -64,30 +65,28 @@ let prev=c[1];
 let momentum=price-prev;
 
 // ПОКАЗЫВАЕМ ЦЕНУ
-document.getElementById('price').innerHTML='Цена: '+price.toFixed(2)+'$';
+document.getElementById('price').innerHTML=price.toFixed(2)+'$';
 
-// СУПЕР ЧУВСТВИТЕЛЬНЫЙ СИГНАЛ
+// ПОРОГ 0.1$ - реагирует на каждую свечу
 let signal=document.getElementById('signal');
 let info=document.getElementById('info');
 
-if(momentum>0.5){
+if(momentum>0.1){
 signal.innerHTML='🟢 BUY';
 signal.style.color='#0f0';
-info.innerHTML=`+${momentum.toFixed(2)}$ за 5мин | Сила: ${(momentum*20).toFixed(0)}%`;
-err.innerHTML='✅ СИГНАЛ РАБОТАЕТ';
-}else if(momentum<-0.5){
+info.innerHTML=`+${momentum.toFixed(2)}$ за 5мин | Сила: ${(momentum*100).toFixed(0)}%`;
+err.innerHTML='✅ СИГНАЛ BUY';
+}else if(momentum<-0.1){
 signal.innerHTML='🔴 SELL';
 signal.style.color='#f00';
-info.innerHTML=`${momentum.toFixed(2)}$ за 5мин | Сила: ${(Math.abs(momentum)*20).toFixed(0)}%`;
-err.innerHTML='✅ СИГНАЛ РАБОТАЕТ';
+info.innerHTML=`${momentum.toFixed(2)}$ за 5мин | Сила: ${(Math.abs(momentum)*100).toFixed(0)}%`;
+err.innerHTML='✅ СИГНАЛ SELL';
 }else{
 signal.innerHTML='■ FLAT';
 signal.style.color='#888';
 info.innerHTML=`${momentum.toFixed(2)}$ за 5мин | Флэт`;
-err.innerHTML='Жду движение 0.5$+';
+err.innerHTML='Жду движение 0.1$+';
 }
-
-lastPrice=price;
 }else{
 err.innerHTML='❌ Мало данных от API. Проверь ключ!';
 document.getElementById('signal').innerHTML='НЕТ ДАННЫХ';
@@ -99,7 +98,14 @@ document.getElementById('signal').innerHTML='ОШИБКА';
 }
 
 // Автоскан каждые 5 сек
-setInterval(scan,5000);
+setInterval(()=>{
+countdown--;
+document.getElementById('timer').innerHTML=`Автоскан: ${countdown} сек`;
+if(countdown<=0){
+countdown=5;
+scan();
+}
+},1000);
 
 // Запуск если ключ есть
 if(key) scan();
