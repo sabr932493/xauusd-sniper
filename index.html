@@ -1,40 +1,106 @@
-// СУПЕР АГРЕССИВНЫЙ СИГНАЛ - на каждую свечу
-let momentum = c[0] - c[1]; // разница с прошлой свечой = 5 минут
-let score = 0;
+<!DOCTYPE html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XAUUSD AI PULSE</title>
+<style>
+body{background:#000;color:#0f0;font-family:monospace;padding:20px;margin:0;text-align:center}
+.box{border:3px solid #0f0;padding:30px;margin:20px 0;border-radius:15px}
+.signal{font-size:80px;font-weight:bold;margin:20px 0;min-height:100px}
+.info{font-size:18px;margin:10px 0}
+input{padding:12px;width:280px;background:#111;color:#0f0;border:2px solid #0f0;border-radius:8px;font-size:16px}
+button{padding:15px 40px;background:#0f0;color:#000;border:0;border-radius:8px;font-weight:bold;font-size:18px;margin:10px;cursor:pointer}
+.error{color:#f00;margin-top:15px;font-size:14px}
+.small{color:#888;font-size:12px;margin-top:10px}
+</style></head><body>
 
-// Моментум главный - +1$ уже сигнал
-if(momentum > 1) {
-    score = 3; // +1$ за 5 мин = BUY
-} else if(momentum < -1) {
-    score = -3; // -1$ за 5 мин = SELL
-} else {
-    score = 0; // флэт
+<h1>⚡ XAUUSD PULSE</h1>
+
+<div class="box">
+<div class="signal" id="signal">Жду ключ...</div>
+<div class="info" id="info"></div>
+<div class="info" id="price"></div>
+<div class="error" id="error"></div>
+</div>
+
+<div class="box">
+API Key TwelveData: <input id="key" type="text" placeholder="Вставь ключ"><br>
+<button onclick="scan()">СКАНИРОВАТЬ СЕЙЧАС</button>
+<div class="small" id="timer">Автоскан: 5 сек</div>
+</div>
+
+<script>
+let key=localStorage.getItem('td_key')||'';
+document.getElementById('key').value=key;
+let lastPrice=0;
+
+async function scan(){
+key=document.getElementById('key').value.trim();
+let err=document.getElementById('error');
+err.innerHTML='';
+
+if(!key){
+err.innerHTML='❌ ВСТАВЬ API КЛЮЧ!';
+return;
 }
 
-// RSI только для силы
-let pct = Math.abs(momentum) * 20; // 1$ = 20% силы
-if(pct > 95) pct = 95;
+localStorage.setItem('td_key',key);
+document.getElementById('signal').innerHTML='СКАНИРУЮ...';
+document.getElementById('signal').style.color='#ff0';
 
-let verdict = document.getElementById('verdict');
-let percent = document.getElementById('percent');
-let tpsl = document.getElementById('tpsl');
+try{
+let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=5&apikey=${key}`;
+let r=await fetch(url);
+let d=await r.json();
 
-if(score == 3){
-    verdict.innerHTML = '🟢 BUY';
-    percent.innerHTML = `Импульс: +${momentum.toFixed(2)}$ | Сила: ${pct.toFixed(0)}%`;
-    tpsl.innerHTML = `TP: ${(price+tp/100).toFixed(2)}$ | SL: ${(price-sl/100).toFixed(2)}$`;
-    document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: СИГНАЛ BUY ⚡';
-    verdict.style.color = '#0f0';
-} else if(score == -3){
-    verdict.innerHTML = '🔴 SELL';
-    percent.innerHTML = `Импульс: ${momentum.toFixed(2)}$ | Сила: ${pct.toFixed(0)}%`;
-    tpsl.innerHTML = `TP: ${(price-tp/100).toFixed(2)}$ | SL: ${(price+sl/100).toFixed(2)}$`;
-    document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: СИГНАЛ SELL ⚡';
-    verdict.style.color = '#f00';
-} else {
-    verdict.innerHTML = '■ FLAT';
-    percent.innerHTML = `Импульс: ${momentum.toFixed(2)}$ | Сила: 0%`;
-    tpsl.innerHTML = 'Нет движения...';
-    document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: ФЛЭТ';
-    verdict.style.color = '#ff0';
+if(d.status=='error'){
+err.innerHTML='❌ API ОШИБКА: '+d.message;
+document.getElementById('signal').innerHTML='ОШИБКА';
+return;
 }
+
+if(d.values && d.values.length>=2){
+let c=d.values.map(x=>parseFloat(x.close));
+let price=c[0];
+let prev=c[1];
+let momentum=price-prev;
+
+// ПОКАЗЫВАЕМ ЦЕНУ
+document.getElementById('price').innerHTML='Цена: '+price.toFixed(2)+'$';
+
+// СУПЕР ЧУВСТВИТЕЛЬНЫЙ СИГНАЛ
+let signal=document.getElementById('signal');
+let info=document.getElementById('info');
+
+if(momentum>0.5){
+signal.innerHTML='🟢 BUY';
+signal.style.color='#0f0';
+info.innerHTML=`+${momentum.toFixed(2)}$ за 5мин | Сила: ${(momentum*20).toFixed(0)}%`;
+err.innerHTML='✅ СИГНАЛ РАБОТАЕТ';
+}else if(momentum<-0.5){
+signal.innerHTML='🔴 SELL';
+signal.style.color='#f00';
+info.innerHTML=`${momentum.toFixed(2)}$ за 5мин | Сила: ${(Math.abs(momentum)*20).toFixed(0)}%`;
+err.innerHTML='✅ СИГНАЛ РАБОТАЕТ';
+}else{
+signal.innerHTML='■ FLAT';
+signal.style.color='#888';
+info.innerHTML=`${momentum.toFixed(2)}$ за 5мин | Флэт`;
+err.innerHTML='Жду движение 0.5$+';
+}
+
+lastPrice=price;
+}else{
+err.innerHTML='❌ Мало данных от API. Проверь ключ!';
+document.getElementById('signal').innerHTML='НЕТ ДАННЫХ';
+}
+}catch(e){
+err.innerHTML='❌ ОШИБКА СЕТИ: '+e.message;
+document.getElementById('signal').innerHTML='ОШИБКА';
+}
+}
+
+// Автоскан каждые 5 сек
+setInterval(scan,5000);
+
+// Запуск если ключ есть
+if(key) scan();
+</script></body></html>
