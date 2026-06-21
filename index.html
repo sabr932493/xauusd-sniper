@@ -1,39 +1,36 @@
-// Замени ВЕСЬ блок "Простой сигнал по EMA+RSI" на это:
+// СУПЕР АГРЕССИВНЫЙ СИГНАЛ - на каждую свечу
+let momentum = c[0] - c[1]; // разница с прошлой свечой = 5 минут
+let score = 0;
 
-// АГРЕССИВНЫЙ СИГНАЛ - чаще срабатывает
-let score=0;
-let momentum = c[0] - c[2]; // разница за 2 свечи = 10 минут
+// 1. Моментум главный - +1$ уже сигнал
+if(momentum > 1) score = 3; // +1$ за 5 мин = BUY
+else if(momentum < -1) score = -3; // -1$ за 5 мин = SELL
+else score = 0; // флэт
 
-// 1. Цена vs EMA9 - главный триггер
-if(price>ema9)score+=2;else score-=2;
+// 2. RSI только для цвета силы
+let pct = Math.abs(momentum) * 20; // 1$ = 20% силы
+if(pct > 95) pct = 95;
 
-// 2. Моментум - если растёт/падает быстро
-if(momentum>2)score+=2; // +2$ за 10 мин = BUY
-if(momentum<-2)score-=2; // -2$ за 10 мин = SELL
+let verdict = document.getElementById('verdict');
+let percent = document.getElementById('percent');
+let tpsl = document.getElementById('tpsl');
 
-// 3. RSI фильтр мягкий
-if(rsi<35)score+=1;
-if(rsi>65)score-=1;
-
-let pct=Math.min(Math.abs(score)/5*100, 95);
-
-let verdict=document.getElementById('verdict');
-let percent=document.getElementById('percent');
-let tpsl=document.getElementById('tpsl');
-
-if(score>=2){
-verdict.innerHTML='🟢 BUY';
-percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
-tpsl.innerHTML=`TP: ${(price+tp/100).toFixed(2)}$ | SL: ${(price-sl/100).toFixed(2)}$`;
-document.getElementById('state').innerHTML='СОСТОЯНИЕ: СИГНАЛ BUY';
-}else if(score<=-2){
-verdict.innerHTML='🔴 SELL';
-percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
-tpsl.innerHTML=`TP: ${(price-tp/100).toFixed(2)}$ | SL: ${(price+sl/100).toFixed(2)}$`;
-document.getElementById('state').innerHTML='СОСТОЯНИЕ: СИГНАЛ SELL';
+if(score == 3){
+verdict.innerHTML = '🟢 BUY';
+percent.innerHTML = `Импульс: +${momentum.toFixed(2)}$ | Сила: ${pct.toFixed(0)}%`;
+tpsl.innerHTML = `TP: ${(price+tp/100).toFixed(2)}$ | SL: ${(price-sl/100).toFixed(2)}$`;
+document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: СИГНАЛ BUY ⚡';
+verdict.style.color = '#0f0';
+}else if(score == -3){
+verdict.innerHTML = '🔴 SELL';
+percent.innerHTML = `Импульс: ${momentum.toFixed(2)}$ | Сила: ${pct.toFixed(0)}%`;
+tpsl.innerHTML = `TP: ${(price-tp/100).toFixed(2)}$ | SL: ${(price+sl/100).toFixed(2)}$`;
+document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: СИГНАЛ SELL ⚡';
+verdict.style.color = '#f00';
 }else{
-verdict.innerHTML='■ FLAT';
-percent.innerHTML=`Сила: ${pct.toFixed(0)}%`;
-tpsl.innerHTML='Жду импульс...';
-document.getElementById('state').innerHTML='СОСТОЯНИЕ: ОЖИДАНИЕ';
+verdict.innerHTML = '■ FLAT';
+percent.innerHTML = `Импульс: ${momentum.toFixed(2)}$ | Сила: 0%`;
+tpsl.innerHTML = 'Нет движения...';
+document.getElementById('state').innerHTML = 'СОСТОЯНИЕ: ФЛЭТ';
+verdict.style.color = '#ff0';
 }
