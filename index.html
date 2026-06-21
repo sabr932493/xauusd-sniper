@@ -1,59 +1,43 @@
 <!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>XAUUSD PULSE 0.1</title>
+<title>XAUUSD AUTO</title>
 <style>
 body{background:#000;color:#0f0;font-family:monospace;padding:20px;margin:0;text-align:center}
 .box{border:3px solid #0f0;padding:30px;margin:20px 0;border-radius:15px}
 .signal{font-size:80px;font-weight:bold;margin:20px 0;min-height:100px}
 .info{font-size:18px;margin:10px 0}
 .price{font-size:32px;font-weight:bold;color:#0f0;margin:15px 0}
-input{padding:12px;width:280px;background:#111;color:#0f0;border:2px solid #0f0;border-radius:8px;font-size:16px}
-button{padding:15px 40px;background:#0f0;color:#000;border:0;border-radius:8px;font-weight:bold;font-size:18px;margin:10px;cursor:pointer}
 .error{color:#f00;margin-top:15px;font-size:14px}
 .small{color:#888;font-size:12px;margin-top:10px}
 </style></head><body>
 
-<h1>⚡ XAUUSD PULSE 0.1</h1>
+<h1>⚡ XAUUSD AUTO</h1>
 
 <div class="box">
-<div class="signal" id="signal">Жду ключ...</div>
+<div class="signal" id="signal">СКАНИРУЮ...</div>
 <div class="info" id="info"></div>
 <div class="price" id="price"></div>
 <div class="error" id="error"></div>
 </div>
 
-<div class="box">
-API Key TwelveData: <input id="key" type="text" placeholder="Вставь ключ"><br>
-<button onclick="scan()">СКАНИРОВАТЬ СЕЙЧАС</button>
-<div class="small" id="timer">Автоскан: 5 сек</div>
-</div>
+<div class="small">Автоскан: 5 сек | Ключ встроен</div>
 
 <script>
-let key=localStorage.getItem('td_key')||'';
-document.getElementById('key').value=key;
+// АВТО КЛЮЧ - НЕ СВЕТИТЬ НИКОМУ!
+const API_KEY = '283e7db1eb4b4028903dbd18771ab97a';
 let countdown=5;
 
 async function scan(){
-key=document.getElementById('key').value.trim();
-let err=document.getElementById('error');
-err.innerHTML='';
-
-if(!key){
-err.innerHTML='❌ ВСТАВЬ API КЛЮЧ!';
-return;
-}
-
-localStorage.setItem('td_key',key);
 document.getElementById('signal').innerHTML='СКАНИРУЮ...';
 document.getElementById('signal').style.color='#ff0';
 
 try{
-let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=5&apikey=${key}`;
+let url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=5min&outputsize=5&apikey=${API_KEY}`;
 let r=await fetch(url);
 let d=await r.json();
 
 if(d.status=='error'){
-err.innerHTML='❌ API ОШИБКА: '+d.message;
+document.getElementById('error').innerHTML='❌ API ОШИБКА: '+d.message;
 document.getElementById('signal').innerHTML='ОШИБКА';
 return;
 }
@@ -64,10 +48,8 @@ let price=c[0];
 let prev=c[1];
 let momentum=price-prev;
 
-// ПОКАЗЫВАЕМ ЦЕНУ
 document.getElementById('price').innerHTML=price.toFixed(2)+'$';
 
-// ПОРОГ 0.1$ - реагирует на каждую свечу
 let signal=document.getElementById('signal');
 let info=document.getElementById('info');
 
@@ -75,24 +57,24 @@ if(momentum>0.1){
 signal.innerHTML='🟢 BUY';
 signal.style.color='#0f0';
 info.innerHTML=`+${momentum.toFixed(2)}$ за 5мин | Сила: ${(momentum*100).toFixed(0)}%`;
-err.innerHTML='✅ СИГНАЛ BUY';
+document.getElementById('error').innerHTML='✅ СИГНАЛ BUY';
 }else if(momentum<-0.1){
 signal.innerHTML='🔴 SELL';
 signal.style.color='#f00';
 info.innerHTML=`${momentum.toFixed(2)}$ за 5мин | Сила: ${(Math.abs(momentum)*100).toFixed(0)}%`;
-err.innerHTML='✅ СИГНАЛ SELL';
+document.getElementById('error').innerHTML='✅ СИГНАЛ SELL';
 }else{
 signal.innerHTML='■ FLAT';
 signal.style.color='#888';
 info.innerHTML=`${momentum.toFixed(2)}$ за 5мин | Флэт`;
-err.innerHTML='Жду движение 0.1$+';
+document.getElementById('error').innerHTML='Жду движение 0.1$+';
 }
 }else{
-err.innerHTML='❌ Мало данных от API. Проверь ключ!';
+document.getElementById('error').innerHTML='❌ Мало данных от API';
 document.getElementById('signal').innerHTML='НЕТ ДАННЫХ';
 }
 }catch(e){
-err.innerHTML='❌ ОШИБКА СЕТИ: '+e.message;
+document.getElementById('error').innerHTML='❌ ОШИБКА СЕТИ: '+e.message;
 document.getElementById('signal').innerHTML='ОШИБКА';
 }
 }
@@ -100,13 +82,12 @@ document.getElementById('signal').innerHTML='ОШИБКА';
 // Автоскан каждые 5 сек
 setInterval(()=>{
 countdown--;
-document.getElementById('timer').innerHTML=`Автоскан: ${countdown} сек`;
 if(countdown<=0){
 countdown=5;
 scan();
 }
 },1000);
 
-// Запуск если ключ есть
-if(key) scan();
+// Запуск сразу
+scan();
 </script></body></html>
